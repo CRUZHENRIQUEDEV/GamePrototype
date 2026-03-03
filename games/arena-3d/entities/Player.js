@@ -1,44 +1,98 @@
 // games/arena-3d/entities/Player.js
-// Entidade jogador — movimentação, colisão e stats
+// Entidade jogador — movimentação, rotação, hit-flash e arma visual
 
 import { bus } from '../../../shared/core/EventBus.js';
 
 export class Player {
+  /**
+   * @param {string} id
+   * @param {THREE.Scene} scene
+   * @param {typeof THREE} THREE
+   * @param {Object} options
+   */
   constructor(id, scene, THREE, options = {}) {
-    this.id     = id;
-    this.hp     = options.hp    ?? 100;
-    this.maxHp  = options.hp    ?? 100;
-    this.speed  = options.speed ?? 6;
-    this.isLocal = options.isLocal ?? false;
+    this.id       = id;
+    this.hp       = options.hp    ?? 100;
+    this.maxHp    = options.hp    ?? 100;
+    this.speed    = options.speed ?? 6;
+    this.isLocal  = options.isLocal ?? false;
+    this._THREE   = THREE;
+    this._hitFlashTimer = 0;
+    this._baseColor = options.color ?? (options.isLocal ? 0x4a7fcb : 0xc1121f);
 
-    // Mesh
+    // Group permite rotacionar o corpo sem mexer na posição do grupo
+    this.group = new THREE.Group();
+
+    // Corpo (cápsula)
     const geo = new THREE.CapsuleGeometry(0.4, 1.2, 4, 8);
-    const mat = new THREE.MeshStandardMaterial({
-      color: options.color ?? (options.isLocal ? 0x4a7fcb : 0xc1121f),
-    });
-    this.mesh = new THREE.Mesh(geo, mat);
+    this._mat = new THREE.MeshStandardMaterial({ color: this._baseColor });
+    this.mesh = new THREE.Mesh(geo, this._mat);
     this.mesh.castShadow = true;
-    this.mesh.position.set(options.x ?? 0, 1, options.z ?? 0);
-    scene.add(this.mesh);
 
-    this._velocity = new THREE.Vector3();
-    this._THREE = THREE;
+    // Cano da arma (visual apenas)
+    const barrel = new THREE.Mesh(
+      new THREE.BoxGeometry(0.10, 0.10, 0.55),
+      new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.8, roughness: 0.3 })
+    );
+    barrel.position.set(0.28, 0.12, -0.62);
+    this.mesh.add(barrel);
+
+    // Olho — indica direção de frente
+    const eye = new THREE.Mesh(
+      new THREE.SphereGeometry(0.08),
+      new THREE.MeshStandardMaterial({
+        color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1
+      })
+    );
+    eye.position.set(0.18, 0.55, -0.38);
+    this.mesh.add(eye);
+
+    this.group.add(this.mesh);
+    this.group.position.set(options.x ?? 0, 1, options.z ?? 0);
+    scene.add(this.group);
   }
 
+  /**
+   * Move na direção dada, rotaciona o corpo e aplica limites da arena.
+   * @param {THREE.Vector3} direction  vetor normalizado
+   * @param {number}        delta      segundos desde o último frame
+   */
   move(direction, delta) {
     const speed = this.speed * delta;
-    this.mesh.position.x += direction.x * speed;
-    this.mesh.position.z += direction.z * speed;
+    this.group.position.x += direction.x * speed;
+    this.group.position.z += direction.z * speed;
 
-    // Limita à arena
-    this.mesh.position.x = Math.max(-9, Math.min(9, this.mesh.position.x));
-    this.mesh.position.z = Math.max(-5, Math.min(5, this.mesh.position.z));
+    if (direction.length() > 0.01) {
+      this.mesh.rotation.y = Math.atan2(direction.x, direction.z);
+    }
+
+    this.group.position.x = Math.max(-9.2, Math.min(9.2, this.group.position.x));
+    this.group.position.z = Math.max(-5.2, Math.min(5.2, this.group.position.z));
+  }
+
+  /** Rotaciona o corpo para encarar uma posição (bot AI). */
+  faceTarget(targetPos) {
+    const dx = targetPos.x - this.group.position.x;
+    const dz = targetPos.z - this.group.position.z;
+    this.mesh.rotation.y = Math.atan2(dx, dz);
   }
 
   takeDamage(amount) {
     this.hp = Math.max(0, this.hp - amount);
+    this._mat.color.setHex(0xff2222);
+    this._hitFlashTimer = 0.18;
     bus.emit('player:damage', { id: this.id, hp: this.hp, amount });
     if (this.hp <= 0) bus.emit('player:dead', { id: this.id });
+  }
+
+  /** Chamado a cada frame para animar o hit-flash. */
+  update(delta) {
+    if (this._hitFlashTimer > 0) {
+      this._hitFlashTimer -= delta;
+      if (this._hitFlashTimer <= 0) {
+        this._mat.color.setHex(this._baseColor);
+      }
+    }
   }
 
   heal(amount) {
@@ -46,5 +100,14 @@ export class Player {
     bus.emit('player:heal', { id: this.id, hp: this.hp });
   }
 
-  get position() { return this.mesh.position; }
+  /** Reseta posição e HP para nova rodada. */
+  reset(x, z) {
+    this.hp = this.maxHp;
+    this.group.position.set(x, 1, z);
+    this.mesh.rotation.y = 0;
+    this._mat.color.setHex(this._baseColor);
+    this._hitFlashTimer = 0;
+  }
+
+  get position() { return this.group.position; }
 }

@@ -10,20 +10,26 @@
 
     #canvas { width: 100vw; height: 100vh; display: block; }
 
-    /* Lobby */
+    /* ── Lobby ──────────────────────────────────────────────────── */
     #lobby {
       position: fixed; inset: 0; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 14px;
-      background: rgba(9,9,18,0.96); z-index: 100;
+      background: rgba(9,9,18,0.97); z-index: 100;
     }
-    #lobby h1 { font-size: 2.6rem; color: #d4af37; letter-spacing: 3px; }
-    #lobby p  { color: #666; font-size: 13px; }
+    #lobby h1 { font-size: 2.6rem; color: #d4af37; letter-spacing: 3px; text-shadow: 0 0 24px #d4af3766; }
+    #lobby p  { color: #555; font-size: 13px; }
     #lobby.hidden { display: none; }
+
+    .lobby-divider { width: 180px; border: none; border-top: 1px solid #2a2a5a; margin: 4px 0; }
+    .lobby-label   { font-size: 11px; color: #555; letter-spacing: 1px; text-transform: uppercase; }
     .lobby-row { display: flex; gap: 8px; }
+
     input {
       padding: 8px 14px; border-radius: 8px; background: #1a1a2e;
       border: 1px solid #2a2a5a; color: #e0e0f0; font-size: 14px; width: 200px;
     }
+    input:focus { outline: none; border-color: #4a7fcb; }
+
     .room-info {
       display: none; flex-direction: column; align-items: center; gap: 10px;
       background: #1a1a2e; border: 1px solid #2a2a5a; border-radius: 12px; padding: 14px 22px;
@@ -34,7 +40,7 @@
     .btn-copy {
       padding: 6px 14px; border-radius: 6px; border: 1px solid #2a2a5a;
       font-size: 12px; font-weight: bold; cursor: pointer;
-      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      transition: background 0.2s, color 0.2s, border-color 0.2s; background: transparent;
     }
     .btn-copy--id  { background: #1e1e3a; color: #e0e0f0; }
     .btn-copy--url { background: #1a2e1a; color: #69db7c; border-color: #2d6a4f; }
@@ -42,37 +48,119 @@
     .btn-enter { background: #1a2a3a; color: #74c0fc; border-color: #2a4a6a; width: 100%; text-align: center; }
     .btn-enter:hover { background: #1d3a5a !important; }
 
-    /* HUD */
+    /* ── HUD ────────────────────────────────────────────────────── */
     #hud {
       position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
-      display: none; align-items: center; gap: 20px;
-      background: rgba(15,15,30,0.85); border: 1px solid #2a2a5a;
+      display: none; align-items: center; gap: 16px;
+      background: rgba(15,15,30,0.88); border: 1px solid #2a2a5a;
       border-radius: 12px; padding: 8px 20px; z-index: 50;
     }
     #hud.visible { display: flex; }
+
     .hp-group { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 120px; }
     .hp-label  { font-size: 11px; color: #888; }
-    .hp-bar-bg { width: 120px; height: 10px; background: #222; border-radius: 5px; overflow: hidden; }
-    .hp-bar    { height: 100%; border-radius: 5px; transition: width 0.3s; }
-    .hp-bar.local  { background: #4a7fcb; }
-    .hp-bar.remote { background: #c1121f; }
+    .hp-bar-bg { width: 120px; height: 10px; background: #1a1a2e; border-radius: 5px; overflow: hidden; }
+    .hp-bar    { height: 100%; border-radius: 5px; transition: width 0.25s; }
+    .hp-bar.local  { background: linear-gradient(90deg, #3a6fcb, #74c0fc); }
+    .hp-bar.remote { background: linear-gradient(90deg, #8b0000, #c1121f); }
     .hp-text   { font-size: 12px; font-weight: bold; }
 
-    /* Controles hint */
-    #hint {
-      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
-      font-size: 12px; color: #444; text-align: center;
+    .hud-center { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .hud-sword  { font-size: 20px; color: #d4af37; }
+    #round-info { font-size: 11px; color: #888; letter-spacing: 1px; white-space: nowrap; }
+
+    /* Cooldown bar */
+    #shoot-cooldown-bar {
+      position: fixed; top: 58px; left: 50%; transform: translateX(-50%);
+      display: none; width: 120px; height: 4px;
+      background: #1a1a2e; border-radius: 2px; overflow: hidden; z-index: 50;
+    }
+    #shoot-cooldown-bar.visible { display: block; }
+    #shoot-cooldown-fill {
+      height: 100%; width: 100%;
+      background: linear-gradient(90deg, #d4af37, #ffe066);
+      border-radius: 2px; transition: width 0.05s linear;
     }
 
-    /* Botões */
-    .ui-btn { padding: 8px 18px; border-radius: 8px; border: none; font-size: 14px; cursor: pointer; font-weight: bold; }
+    /* ── Controles hint ─────────────────────────────────────────── */
+    #hint {
+      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+      font-size: 12px; color: #333; text-align: center; pointer-events: none;
+    }
+    #hint kbd {
+      font-size: 11px; background: #1a1a2e; border: 1px solid #2a2a5a;
+      border-radius: 4px; padding: 1px 5px; color: #aaa; font-family: inherit;
+    }
+
+    /* ── Botão Ajuda ────────────────────────────────────────────── */
+    #btn-help {
+      position: fixed; bottom: 14px; right: 16px; z-index: 200;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(15,15,30,0.92); border: 1px solid #2a2a5a;
+      color: #d4af37; font-size: 18px; font-weight: bold;
+      cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1;
+    }
+    #btn-help:hover { background: #2a2a5a; transform: scale(1.1); }
+
+    /* ── Modal de Ajuda ─────────────────────────────────────────── */
+    #help-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.80);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9500; opacity: 0; transition: opacity 0.25s;
+      pointer-events: none;
+    }
+    #help-overlay.visible { opacity: 1; pointer-events: all; }
+    #help-overlay.hidden  { display: none; }
+
+    .help-box {
+      background: #12121f; border: 1px solid #2a2a5a; border-radius: 16px;
+      padding: 28px 32px; max-width: 540px; width: 92vw;
+      position: relative;
+    }
+    .help-box h2 {
+      font-size: 1.5rem; color: #d4af37; margin-bottom: 18px;
+      letter-spacing: 2px; text-align: center;
+    }
+    .help-close {
+      position: absolute; top: 14px; right: 16px;
+      background: none; border: none; color: #888; font-size: 18px;
+      cursor: pointer; line-height: 1; padding: 2px 6px; border-radius: 6px;
+    }
+    .help-close:hover { color: #e0e0f0; background: #2a2a5a; }
+
+    .help-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px;
+    }
+    .help-sec h3 {
+      font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #1e1e38;
+    }
+    .help-sec ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .help-sec li { font-size: 13px; color: #c0c0d8; display: flex; align-items: baseline; gap: 6px; }
+    .help-sec li kbd {
+      font-size: 11px; background: #1a1a2e; border: 1px solid #2a2a5a;
+      border-radius: 4px; padding: 1px 5px; color: #aaa; font-family: inherit;
+      white-space: nowrap;
+    }
+    .help-footer {
+      margin-top: 18px; text-align: center; font-size: 11px; color: #444;
+    }
+
+    /* ── Botões ─────────────────────────────────────────────────── */
+    .ui-btn {
+      padding: 8px 18px; border-radius: 8px; border: none;
+      font-size: 14px; cursor: pointer; font-weight: bold;
+    }
     .ui-btn--primary   { background: #4a7fcb; color: #fff; }
     .ui-btn--secondary { background: #1a1a2e; color: #e0e0f0; border: 1px solid #2a2a5a; }
-    .ui-btn:hover { filter: brightness(1.2); }
+    .ui-btn--solo      { background: #2d4a1e; color: #69db7c; border: 1px solid #3d7a2e; }
+    .ui-btn:hover { filter: brightness(1.15); }
 
-    /* Modal */
+    /* ── Modal genérico (UIManager) ─────────────────────────────── */
     .ui-modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      position: fixed; inset: 0; background: rgba(0,0,0,0.78);
       display: flex; align-items: center; justify-content: center;
       z-index: 8000; opacity: 0; transition: opacity 0.3s;
     }
@@ -83,10 +171,11 @@
       text-align: center;
     }
     .ui-modal h2 { font-size: 1.8rem; color: #d4af37; }
+    .ui-modal p  { color: #aaa; font-size: 14px; }
     .ui-modal__title { color: #d4af37; font-size: 1.2rem; font-weight: bold; }
     .ui-modal__actions { display: flex; gap: 8px; justify-content: center; }
 
-    /* Toast */
+    /* ── Toast ──────────────────────────────────────────────────── */
     .ui-toast {
       position: fixed; bottom: 20px; right: 20px; z-index: 9000;
       background: #1a1a2e; border: 1px solid #2a2a5a;
@@ -94,22 +183,34 @@
       opacity: 0; transform: translateY(10px); transition: 0.3s;
     }
     .ui-toast--visible { opacity: 1; transform: translateY(0); }
-    .ui-toast--error { border-color: #c1121f; }
-    .ui-toast--info  { border-color: #4a7fcb; }
+    .ui-toast--error   { border-color: #c1121f; }
+    .ui-toast--info    { border-color: #4a7fcb; }
+    .ui-toast--success { border-color: #69db7c; }
   </style>
 </head>
 <body>
   <canvas id="canvas"></canvas>
 
-  <!-- Lobby -->
+  <!-- ── Lobby ───────────────────────────────────────────────── -->
   <div id="lobby">
     <h1>Arena 3D</h1>
-    <p>Arena de combate P2P · WASD para mover · Space para atirar</p>
+    <p>Combate 3D em tempo real — solo ou P2P</p>
+
+    <!-- Solo -->
+    <button id="btn-solo" class="ui-btn ui-btn--solo">Jogar Solo (vs Bot)</button>
+    <hr class="lobby-divider">
+    <span class="lobby-label">Multijogador P2P</span>
+
+    <!-- P2P create -->
     <button id="btn-create" class="ui-btn ui-btn--primary">Criar Sala</button>
+
+    <!-- P2P join -->
     <div class="lobby-row">
       <input id="room-input" placeholder="ID da sala...">
       <button id="btn-join" class="ui-btn ui-btn--secondary">Entrar</button>
     </div>
+
+    <!-- Room info (after creating) -->
     <div id="room-info" class="room-info">
       <span class="room-info__label">CÓDIGO DA SALA</span>
       <span id="room-display"></span>
@@ -121,22 +222,86 @@
     </div>
   </div>
 
-  <!-- HUD -->
+  <!-- ── HUD ─────────────────────────────────────────────────── -->
   <div id="hud">
     <div class="hp-group">
-      <span class="hp-label">Oponente</span>
+      <span class="hp-label" id="label-remote">Oponente</span>
       <div class="hp-bar-bg"><div id="hp-bar-remote" class="hp-bar remote" style="width:100%"></div></div>
       <span id="hp-text-remote" class="hp-text" style="color:#c1121f">100</span>
     </div>
-    <div style="font-size:20px;color:#d4af37">⚔</div>
+    <div class="hud-center">
+      <span class="hud-sword">⚔</span>
+      <span id="round-info">R1 · 0 – 0</span>
+    </div>
     <div class="hp-group">
       <span class="hp-label">Você</span>
       <div class="hp-bar-bg"><div id="hp-bar-local" class="hp-bar local" style="width:100%"></div></div>
-      <span id="hp-text-local" class="hp-text" style="color:#4a7fcb">100</span>
+      <span id="hp-text-local" class="hp-text" style="color:#74c0fc">100</span>
     </div>
   </div>
 
-  <div id="hint">WASD / Setas — Mover &nbsp;·&nbsp; Space — Atirar &nbsp;·&nbsp; Mouse — Orbitar câmera</div>
+  <!-- Cooldown bar (abaixo do HUD) -->
+  <div id="shoot-cooldown-bar">
+    <div id="shoot-cooldown-fill"></div>
+  </div>
+
+  <!-- Hint de controles -->
+  <div id="hint">
+    <kbd>WASD</kbd> Mover &nbsp;·&nbsp;
+    <kbd>Space</kbd> Atirar &nbsp;·&nbsp;
+    <kbd>Mouse</kbd> Orbitar câmera
+  </div>
+
+  <!-- Botão Ajuda -->
+  <button id="btn-help" title="Ajuda (H)">?</button>
+
+  <!-- ── Modal de Ajuda ──────────────────────────────────────── -->
+  <div id="help-overlay" class="hidden" role="dialog" aria-modal="true">
+    <div class="help-box">
+      <button class="help-close" id="help-close">✕</button>
+      <h2>Como Jogar</h2>
+      <div class="help-grid">
+        <div class="help-sec">
+          <h3>Controles</h3>
+          <ul>
+            <li><kbd>W A S D</kbd> Mover</li>
+            <li><kbd>Setas</kbd> Mover (alt)</li>
+            <li><kbd>Space</kbd> Atirar</li>
+            <li><kbd>Drag mouse</kbd> Orbitar câmera</li>
+            <li><kbd>Scroll</kbd> Zoom</li>
+            <li><kbd>H</kbd> Abrir esta ajuda</li>
+          </ul>
+        </div>
+        <div class="help-sec">
+          <h3>Objetivo</h3>
+          <ul>
+            <li>Reduza o HP do oponente a 0</li>
+            <li>Vença 2 rodadas para ganhar</li>
+            <li>Cada tiro causa 10 de dano</li>
+            <li>Projéteis somem após 3s</li>
+          </ul>
+        </div>
+        <div class="help-sec">
+          <h3>Power-ups</h3>
+          <ul>
+            <li>Orbes verdes dão +30 HP</li>
+            <li>Pise sobre eles para coletar</li>
+            <li>Reaparecem a cada 15 segundos</li>
+          </ul>
+        </div>
+        <div class="help-sec">
+          <h3>Dicas</h3>
+          <ul>
+            <li>Cooldown de tiro: 0,4 segundos</li>
+            <li>Use pilares como cobertura</li>
+            <li>O bot strafa perto de você</li>
+            <li>Câmera livre com o mouse!</li>
+          </ul>
+        </div>
+      </div>
+      <p class="help-footer">Melhor de 3 rodadas · P2P via PeerJS</p>
+    </div>
+  </div>
 
   <script type="module" src="./main.js"></script>
 </body>
