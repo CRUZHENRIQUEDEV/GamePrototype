@@ -22,6 +22,7 @@ export class InputManager {
     });
 
     element.addEventListener('pointerdown', e => {
+      this._pressed.add(`Mouse${e.button}`);
       this._pointer = { x: e.clientX, y: e.clientY };
       bus.emit('input:pointerdown', { x: e.clientX, y: e.clientY, button: e.button, event: e });
     });
@@ -32,6 +33,7 @@ export class InputManager {
     });
 
     element.addEventListener('pointerup', e => {
+      this._pressed.delete(`Mouse${e.button}`);
       bus.emit('input:pointerup', { x: e.clientX, y: e.clientY, button: e.button });
     });
 

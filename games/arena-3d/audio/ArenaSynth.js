@@ -6,11 +6,13 @@ import { SoundSynth } from '../../../shared/audio/SoundSynth.js';
 export class ArenaSynth extends SoundSynth {
 
   /** Tiro laser — pew descendente */
-  shoot() {
+  playShoot() {
     this._osc(900, 0.14, { type: 'sawtooth', vol: 0.20, attack: 0.002,
       pitch: [[0.02, 500], [0.07, 220]] });
     this._noise(0.06, { vol: 0.06 });
   }
+
+  shoot() { this.playShoot(); }
 
   /** Impacto no jogador — pancada seca */
   hit() {

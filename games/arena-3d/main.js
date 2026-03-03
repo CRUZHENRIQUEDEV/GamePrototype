@@ -529,7 +529,8 @@ function handleInput(delta, THREE) {
     if (input.isPressed("KeyW") || input.isPressed("ArrowUp")) moveDir.z -= 1;
     if (input.isPressed("KeyS") || input.isPressed("ArrowDown")) moveDir.z += 1;
     if (input.isPressed("KeyA") || input.isPressed("ArrowLeft")) moveDir.x -= 1;
-    if (input.isPressed("KeyD") || input.isPressed("ArrowRight")) moveDir.x += 1;
+    if (input.isPressed("KeyD") || input.isPressed("ArrowRight"))
+      moveDir.x += 1;
   }
 
   if (moveDir.lengthSq() > 0) moveDir.normalize();
@@ -547,31 +548,35 @@ function handleInput(delta, THREE) {
   }
 
   // Shooting
-  if (input.isPressed("Space") && shootCooldown <= 0) {
-    shootCooldown = SHOOT_COOLDOWN;
+  if (input.isPressed("Space") || input.isPressed("Mouse0")) {
+    if (shootCooldown <= 0) {
+      shootCooldown = SHOOT_COOLDOWN;
 
-    // Calcula direção do tiro
-    let dir = new THREE.Vector3(0, 0, 1);
-    if (isFPS) {
-      dir.set(0, 0, -1).applyEuler(new THREE.Euler(fpsPitch, fpsYaw, 0, "YXZ"));
-    } else {
-      dir.set(Math.sin(p.mesh.rotation.y), 0, Math.cos(p.mesh.rotation.y)); // Frente do modelo
+      // Calcula direção do tiro
+      let dir = new THREE.Vector3(0, 0, 1);
+      if (isFPS) {
+        dir
+          .set(0, 0, -1)
+          .applyEuler(new THREE.Euler(fpsPitch, fpsYaw, 0, "YXZ"));
+      } else {
+        dir.set(Math.sin(p.mesh.rotation.y), 0, Math.cos(p.mesh.rotation.y)); // Frente do modelo
+      }
+
+      spawnProjectile(p, dir);
+
+      // Network Shoot
+      if (!isSolo) {
+        const payload = { dir };
+        if (isHost) network.broadcast("game:shoot", payload);
+        else network.sendTo(hostId, "game:shoot", payload);
+      }
+
+      // UI Cooldown
+      const bar = document.getElementById("shoot-cooldown-fill");
+      bar.style.width = "0%";
+      setTimeout(() => (bar.style.width = "100%"), 50);
+      bar.style.transition = `width ${SHOOT_COOLDOWN}s linear`;
     }
-
-    spawnProjectile(p, dir);
-
-    // Network Shoot
-    if (!isSolo) {
-      const payload = { dir };
-      if (isHost) network.broadcast("game:shoot", payload);
-      else network.sendTo(hostId, "game:shoot", payload);
-    }
-
-    // UI Cooldown
-    const bar = document.getElementById("shoot-cooldown-fill");
-    bar.style.width = "0%";
-    setTimeout(() => (bar.style.width = "100%"), 50);
-    bar.style.transition = `width ${SHOOT_COOLDOWN}s linear`;
   }
 }
 
@@ -723,6 +728,19 @@ function updateHUD() {
 
 // ── FPS Mode ─────────────────────────────────────────────────────────────────
 function setupFPSMode() {
+  const btn = document.getElementById("btn-fps");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      if (players.has(myId)) isFPS ? disableFPS() : enableFPS();
+    });
+  }
+
+  document.addEventListener("pointerlockchange", () => {
+    if (document.pointerLockElement !== canvas) {
+      if (isFPS) disableFPS();
+    }
+  });
+
   document.addEventListener("mousemove", (e) => {
     if (!isFPS) return;
     fpsYaw -= e.movementX * 0.0022;
@@ -746,8 +764,11 @@ function enableFPS() {
 }
 
 function disableFPS() {
+  if (!isFPS) return; // Evita loop se chamado pelo pointerlockchange
   isFPS = false;
-  document.exitPointerLock();
+  if (document.pointerLockElement === canvas) {
+    document.exitPointerLock();
+  }
   document.getElementById("btn-fps").classList.remove("fps-active");
   document.getElementById("fps-crosshair").classList.remove("visible");
   orbitControls.enabled = true;
