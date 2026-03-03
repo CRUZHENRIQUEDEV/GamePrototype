@@ -78,9 +78,7 @@ function setupLobby(cardDb) {
     document.getElementById('room-display').textContent = roomId;
     document.getElementById('room-info').style.display = 'flex';
 
-    const btnEnter3d = document.getElementById('btn-enter-room');
-    btnEnter3d.style.display = 'block';
-    btnEnter3d.onclick = () => window.open(inviteUrl, '_blank');
+    // Botão de entrar removido - aguardando oponente
 
     document.getElementById('btn-copy-id').addEventListener('click', function () {
       copyToClipboard(roomId, this);

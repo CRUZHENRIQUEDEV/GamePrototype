@@ -110,9 +110,7 @@ async function createRoom(roomId) {
     copyToClipboard(inviteUrl, this);
   });
 
-  const btnEnter = document.getElementById('btn-enter-room');
-  btnEnter.style.display = 'block';
-  btnEnter.onclick = () => window.open(inviteUrl, '_blank');
+  // Removido botão de auto-entrar
 
   ui.toast('Sala criada! Compartilhe o código.', 'info', 3000);
 

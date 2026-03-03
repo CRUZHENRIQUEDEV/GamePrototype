@@ -117,10 +117,7 @@ function setupLobby() {
       copyToClipboard(inviteUrl, this);
     });
 
-    const btnEnter = document.getElementById('btn-enter-room');
-    btnEnter.style.display = 'block';
-    btnEnter.onclick = () => window.open(inviteUrl, '_blank');
-
+    // Removido botão de auto-entrar, agora aguarda oponente
     ui.toast('Sala criada! Aguardando oponente...', 'info', 4000);
 
     bus.on('net:peer-joined', ({ peerId }) => {
