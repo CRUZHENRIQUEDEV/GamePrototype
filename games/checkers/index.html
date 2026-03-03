@@ -25,15 +25,17 @@
       align-items: center; overflow-x: hidden;
     }
 
-    /* ── Botão tutorial (sempre visível) ── */
-    .btn-tutorial {
-      position: fixed; top: 12px; right: 12px; z-index: 200;
+    /* ── Botões fixos (tutorial + mute) ── */
+    .btn-fixed {
+      position: fixed; top: 12px; z-index: 200;
       width: 36px; height: 36px; border-radius: 50%;
       background: var(--surface); border: 1px solid var(--border);
-      color: var(--gold); font-size: 16px; font-weight: bold;
-      cursor: pointer; transition: 0.2s;
+      font-size: 16px; cursor: pointer; transition: background 0.2s, color 0.2s;
+      display: flex; align-items: center; justify-content: center;
     }
-    .btn-tutorial:hover { background: var(--gold); color: #000; }
+    .btn-tutorial { right: 12px;  color: var(--gold); font-weight: bold; }
+    .btn-mute     { right: 56px;  color: #74c0fc; }
+    .btn-fixed:hover { background: var(--gold); color: #000; }
 
     /* ── Lobby ── */
     #lobby {
@@ -119,13 +121,15 @@
       image-rendering: pixelated;
     }
 
-    /* Tutorial btn in-game */
-    #btn-tutorial-game {
-      padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
+    /* Botões de ação na HUD */
+    .hud-btn {
+      padding: 4px 12px; border-radius: 6px; border: 1px solid var(--border);
       background: var(--surface); color: var(--gold); font-size: 12px;
-      cursor: pointer; font-weight: bold;
+      cursor: pointer; font-weight: bold; white-space: nowrap;
+      transition: background 0.2s, color 0.2s;
     }
-    #btn-tutorial-game:hover { background: var(--gold); color: #000; }
+    .hud-btn:hover { background: var(--gold); color: #000; }
+    .hud-btn.muted { color: #666; border-color: #333; }
 
     /* ── Modal ── */
     .ui-modal-overlay {
@@ -163,8 +167,9 @@
 </head>
 <body>
 
-  <!-- Botão de tutorial sempre visível -->
-  <button class="btn-tutorial" title="Como jogar">?</button>
+  <!-- Botões fixos: mute + tutorial -->
+  <button id="btn-mute"     class="btn-fixed btn-mute"     title="Ativar/desativar sons">🔊</button>
+  <button id="btn-tutorial" class="btn-fixed btn-tutorial" title="Como jogar">?</button>
 
   <!-- Lobby -->
   <div id="lobby">
@@ -203,7 +208,8 @@
       <span id="turn-display">Aguardando...</span>
       <span id="white-count">⚪ 12</span>
       <span id="color-display"></span>
-      <button id="btn-tutorial-game" class="btn-tutorial">Regras ?</button>
+      <button id="btn-tutorial-game" class="hud-btn btn-tutorial">Regras ?</button>
+      <button id="btn-mute-game"     class="hud-btn btn-mute-game">🔊 Som</button>
     </div>
 
     <div id="board-container">

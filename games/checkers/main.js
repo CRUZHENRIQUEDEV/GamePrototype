@@ -5,6 +5,7 @@ import { bus }              from '../../shared/core/EventBus.js';
 import { network }          from '../../shared/network/NetworkManager.js';
 import { UIManager }        from '../../shared/ui/UIManager.js';
 import { ParticleSystem2D } from '../../shared/render/ParticleSystem.js';
+import { SoundSynth }       from '../../shared/audio/SoundSynth.js';
 import { CheckersEngine }   from './CheckersEngine.js';
 
 // ── Constantes ──────────────────────────────────────────────────────────────
@@ -39,13 +40,38 @@ let localId    = null;
 let opponentId = null;
 let localColor = 'red'; // host = red, client = white
 
-const ui = new UIManager();
-const fx = new ParticleSystem2D(document.body);
+const ui    = new UIManager();
+const fx    = new ParticleSystem2D(document.body);
+const synth = new SoundSynth();
+
+// ── Mute ──────────────────────────────────────────────────────────────────
+let _muted = false;
+
+function setupMuteButtons() {
+  const btns = [document.getElementById('btn-mute'), document.getElementById('btn-mute-game')];
+  btns.forEach(btn => {
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      synth.init(); // garante inicialização no clique
+      _muted = !_muted;
+      synth.setVolume(_muted ? 0 : 0.85);
+      const icon  = _muted ? '🔇' : '🔊';
+      const label = _muted ? '🔇 Mudo' : '🔊 Som';
+      document.getElementById('btn-mute')?.textContent && (document.getElementById('btn-mute').textContent = icon);
+      document.getElementById('btn-mute-game')?.textContent && (document.getElementById('btn-mute-game').textContent = label);
+      btns.forEach(b => b?.classList.toggle('muted', _muted));
+    });
+  });
+}
 
 // ── Init ──────────────────────────────────────────────────────────────────
 function init() {
   setupLobby();
+  setupMuteButtons();
   drawIdleScreen();
+
+  // Inicializa áudio no primeiro gesto (exigência dos browsers)
+  document.addEventListener('pointerdown', () => synth.init(), { once: true });
 
   // Tutorial button (lobby + in-game)
   document.querySelectorAll('.btn-tutorial').forEach(btn =>
@@ -163,6 +189,8 @@ function handleCellClick(row, col) {
       const savedSelected = { ...selected };
       const result = engine.move(row, col);
       if (result) {
+        // Som de movimento (será sobrescrito pelo de captura em handleMoveResult se houver)
+        if (!result.captured?.length) synth.move();
         network.broadcast('move', { from: savedSelected, to: { row, col } });
         handleMoveResult(result, row, col);
         renderBoard();
@@ -175,9 +203,12 @@ function handleCellClick(row, col) {
 
   // Tentando selecionar peça
   const ok = engine.selectPiece(row, col);
-  if (!ok) {
+  if (ok) {
+    synth.select();
+  } else {
     const piece = board[row][col];
     if (piece?.color === localColor && engine.hasForcedCapture()) {
+      synth.error();
       ui.toast('Captura obrigatória! Selecione a peça marcada.', 'error', 2200);
     }
   }
@@ -187,8 +218,9 @@ function handleCellClick(row, col) {
 function handleMoveResult(result, toRow, toCol) {
   if (!result?.success) return;
 
-  // Efeito de partículas nas capturas
+  // Som e partículas nas capturas
   if (result.captured?.length) {
+    result.chainCapture ? synth.chainCapture() : synth.capture();
     const rect  = canvas.getBoundingClientRect();
     const cellW = rect.width  / 8;
     const cellH = rect.height / 8;
@@ -196,15 +228,22 @@ function handleMoveResult(result, toRow, toCol) {
       fx.burst(
         rect.left + (col + 0.5) * cellW,
         rect.top  + (row + 0.5) * cellH,
-        { count: 12, colors: color === 'red' ? ['#c0392b','#ff6b6b','#ffd700'] : ['#ecf0f1','#74c0fc','#ffd700'], spread: 45 }
+        { count: 12, colors: color === 'red'
+            ? ['#c0392b','#ff6b6b','#ffd700']
+            : ['#ecf0f1','#74c0fc','#ffd700'],
+          spread: 45 }
       );
     });
   }
 
-  if (result.promoted) ui.toast('Peça promovida a DAMA ♛', 'info', 2000);
+  if (result.promoted) {
+    synth.promotion();
+    ui.toast('Peça promovida a DAMA ♛', 'info', 2000);
+  }
 
   if (result.winner) {
     const won = result.winner === localColor;
+    won ? synth.win() : synth.lose();
     setTimeout(() => {
       ui.openModal('game-over',
         `<div style="text-align:center">
@@ -232,9 +271,13 @@ function setupNetworkSync() {
     if (type === 'move') {
       const { from: f, to } = payload;
       const result = engine.applyRemoteMove(f.row, f.col, to.row, to.col);
+      if (result?.captured?.length) synth.capture();
+      else synth.opponentMove();
       if (result?.chainCapture) engine.selectPiece(to.row, to.col);
       renderBoard();
       updateHUD();
+      // Notifica que agora é o turno do jogador local
+      if (!result?.winner && engine.state.turn === localColor) synth.turnNotify();
       if (result?.winner) handleMoveResult(result, to.row, to.col);
     }
   });
