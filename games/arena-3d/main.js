@@ -520,16 +520,16 @@ function handleInput(delta, THREE) {
       fpsYaw
     );
 
-    if (input.isDown("KeyW")) moveDir.add(forward);
-    if (input.isDown("KeyS")) moveDir.sub(forward);
-    if (input.isDown("KeyA")) moveDir.sub(right);
-    if (input.isDown("KeyD")) moveDir.add(right);
+    if (input.isPressed("KeyW")) moveDir.add(forward);
+    if (input.isPressed("KeyS")) moveDir.sub(forward);
+    if (input.isPressed("KeyA")) moveDir.sub(right);
+    if (input.isPressed("KeyD")) moveDir.add(right);
   } else {
     // Top-down Input
-    if (input.isDown("KeyW") || input.isDown("ArrowUp")) moveDir.z -= 1;
-    if (input.isDown("KeyS") || input.isDown("ArrowDown")) moveDir.z += 1;
-    if (input.isDown("KeyA") || input.isDown("ArrowLeft")) moveDir.x -= 1;
-    if (input.isDown("KeyD") || input.isDown("ArrowRight")) moveDir.x += 1;
+    if (input.isPressed("KeyW") || input.isPressed("ArrowUp")) moveDir.z -= 1;
+    if (input.isPressed("KeyS") || input.isPressed("ArrowDown")) moveDir.z += 1;
+    if (input.isPressed("KeyA") || input.isPressed("ArrowLeft")) moveDir.x -= 1;
+    if (input.isPressed("KeyD") || input.isPressed("ArrowRight")) moveDir.x += 1;
   }
 
   if (moveDir.lengthSq() > 0) moveDir.normalize();
@@ -547,7 +547,7 @@ function handleInput(delta, THREE) {
   }
 
   // Shooting
-  if (input.isDown("Space") && shootCooldown <= 0) {
+  if (input.isPressed("Space") && shootCooldown <= 0) {
     shootCooldown = SHOOT_COOLDOWN;
 
     // Calcula direção do tiro
