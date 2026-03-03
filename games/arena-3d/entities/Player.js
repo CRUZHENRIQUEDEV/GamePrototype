@@ -63,7 +63,8 @@ export class Player {
     this.group.position.z += direction.z * speed;
 
     if (direction.length() > 0.01) {
-      this.mesh.rotation.y = Math.atan2(direction.x, direction.z);
+      // atan2(-x, -z) faz o corpo encarar a direção do movimento
+      this.mesh.rotation.y = Math.atan2(-direction.x, -direction.z);
     }
 
     this.group.position.x = Math.max(-9.2, Math.min(9.2, this.group.position.x));
@@ -74,7 +75,7 @@ export class Player {
   faceTarget(targetPos) {
     const dx = targetPos.x - this.group.position.x;
     const dz = targetPos.z - this.group.position.z;
-    this.mesh.rotation.y = Math.atan2(dx, dz);
+    this.mesh.rotation.y = Math.atan2(-dx, -dz);
   }
 
   takeDamage(amount) {
