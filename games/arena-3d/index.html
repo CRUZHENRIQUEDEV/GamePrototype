@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arena 3D</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #090912; color: #e0e0f0; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; }
+
+    #canvas { width: 100vw; height: 100vh; display: block; }
+
+    /* Lobby */
+    #lobby {
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 14px;
+      background: rgba(9,9,18,0.96); z-index: 100;
+    }
+    #lobby h1 { font-size: 2.6rem; color: #d4af37; letter-spacing: 3px; }
+    #lobby p  { color: #666; font-size: 13px; }
+    #lobby.hidden { display: none; }
+    .lobby-row { display: flex; gap: 8px; }
+    input {
+      padding: 8px 14px; border-radius: 8px; background: #1a1a2e;
+      border: 1px solid #2a2a5a; color: #e0e0f0; font-size: 14px; width: 200px;
+    }
+    .room-info {
+      display: none; flex-direction: column; align-items: center; gap: 10px;
+      background: #1a1a2e; border: 1px solid #2a2a5a; border-radius: 12px; padding: 14px 22px;
+    }
+    .room-info__label { font-size: 11px; color: #666; letter-spacing: 1px; }
+    #room-display     { font-size: 1.2rem; font-weight: bold; color: #d4af37; letter-spacing: 3px; }
+    .room-info__actions { display: flex; gap: 8px; }
+    .btn-copy {
+      padding: 6px 14px; border-radius: 6px; border: 1px solid #2a2a5a;
+      font-size: 12px; font-weight: bold; cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .btn-copy--id  { background: #1e1e3a; color: #e0e0f0; }
+    .btn-copy--url { background: #1a2e1a; color: #69db7c; border-color: #2d6a4f; }
+    .btn-copy--done { background: #2d6a4f !important; color: #fff !important; border-color: #2d6a4f !important; }
+    .btn-enter { background: #1a2a3a; color: #74c0fc; border-color: #2a4a6a; width: 100%; text-align: center; }
+    .btn-enter:hover { background: #1d3a5a !important; }
+
+    /* HUD */
+    #hud {
+      position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+      display: none; align-items: center; gap: 20px;
+      background: rgba(15,15,30,0.85); border: 1px solid #2a2a5a;
+      border-radius: 12px; padding: 8px 20px; z-index: 50;
+    }
+    #hud.visible { display: flex; }
+    .hp-group { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 120px; }
+    .hp-label  { font-size: 11px; color: #888; }
+    .hp-bar-bg { width: 120px; height: 10px; background: #222; border-radius: 5px; overflow: hidden; }
+    .hp-bar    { height: 100%; border-radius: 5px; transition: width 0.3s; }
+    .hp-bar.local  { background: #4a7fcb; }
+    .hp-bar.remote { background: #c1121f; }
+    .hp-text   { font-size: 12px; font-weight: bold; }
+
+    /* Controles hint */
+    #hint {
+      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+      font-size: 12px; color: #444; text-align: center;
+    }
+
+    /* Botões */
+    .ui-btn { padding: 8px 18px; border-radius: 8px; border: none; font-size: 14px; cursor: pointer; font-weight: bold; }
+    .ui-btn--primary   { background: #4a7fcb; color: #fff; }
+    .ui-btn--secondary { background: #1a1a2e; color: #e0e0f0; border: 1px solid #2a2a5a; }
+    .ui-btn:hover { filter: brightness(1.2); }
+
+    /* Modal */
+    .ui-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 8000; opacity: 0; transition: opacity 0.3s;
+    }
+    .ui-modal-overlay--visible { opacity: 1; }
+    .ui-modal {
+      background: #1a1a2e; border: 1px solid #2a2a5a; border-radius: 14px;
+      padding: 28px 32px; min-width: 260px; display: flex; flex-direction: column; gap: 16px;
+      text-align: center;
+    }
+    .ui-modal h2 { font-size: 1.8rem; color: #d4af37; }
+    .ui-modal__title { color: #d4af37; font-size: 1.2rem; font-weight: bold; }
+    .ui-modal__actions { display: flex; gap: 8px; justify-content: center; }
+
+    /* Toast */
+    .ui-toast {
+      position: fixed; bottom: 20px; right: 20px; z-index: 9000;
+      background: #1a1a2e; border: 1px solid #2a2a5a;
+      border-radius: 10px; padding: 10px 18px; font-size: 13px;
+      opacity: 0; transform: translateY(10px); transition: 0.3s;
+    }
+    .ui-toast--visible { opacity: 1; transform: translateY(0); }
+    .ui-toast--error { border-color: #c1121f; }
+    .ui-toast--info  { border-color: #4a7fcb; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  <!-- Lobby -->
+  <div id="lobby">
+    <h1>Arena 3D</h1>
+    <p>Arena de combate P2P · WASD para mover · Space para atirar</p>
+    <button id="btn-create" class="ui-btn ui-btn--primary">Criar Sala</button>
+    <div class="lobby-row">
+      <input id="room-input" placeholder="ID da sala...">
+      <button id="btn-join" class="ui-btn ui-btn--secondary">Entrar</button>
+    </div>
+    <div id="room-info" class="room-info">
+      <span class="room-info__label">CÓDIGO DA SALA</span>
+      <span id="room-display"></span>
+      <div class="room-info__actions">
+        <button id="btn-copy-id"  class="btn-copy btn-copy--id"  data-label="Copiar ID">Copiar ID</button>
+        <button id="btn-copy-url" class="btn-copy btn-copy--url" data-label="Copiar Link">Copiar Link</button>
+      </div>
+      <button id="btn-enter-room" class="btn-copy btn-enter" style="display:none">Entrar como 2º jogador ↗</button>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hp-group">
+      <span class="hp-label">Oponente</span>
+      <div class="hp-bar-bg"><div id="hp-bar-remote" class="hp-bar remote" style="width:100%"></div></div>
+      <span id="hp-text-remote" class="hp-text" style="color:#c1121f">100</span>
+    </div>
+    <div style="font-size:20px;color:#d4af37">⚔</div>
+    <div class="hp-group">
+      <span class="hp-label">Você</span>
+      <div class="hp-bar-bg"><div id="hp-bar-local" class="hp-bar local" style="width:100%"></div></div>
+      <span id="hp-text-local" class="hp-text" style="color:#4a7fcb">100</span>
+    </div>
+  </div>
+
+  <div id="hint">WASD / Setas — Mover &nbsp;·&nbsp; Space — Atirar &nbsp;·&nbsp; Mouse — Orbitar câmera</div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dama Online</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0d0d1a;
+      --surface: #1a1a2e;
+      --border:  #2a2a5a;
+      --gold:    #d4af37;
+      --text:    #e0e0f0;
+      --dim:     #888;
+      --accent:  #4a7fcb;
+      --green:   #2d6a4f;
+    }
+
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; overflow-x: hidden;
+    }
+
+    /* ── Botão tutorial (sempre visível) ── */
+    .btn-tutorial {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--gold); font-size: 16px; font-weight: bold;
+      cursor: pointer; transition: 0.2s;
+    }
+    .btn-tutorial:hover { background: var(--gold); color: #000; }
+
+    /* ── Lobby ── */
+    #lobby {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 16px; min-height: 100vh; padding: 24px;
+    }
+    #lobby h1 { font-size: 3rem; color: var(--gold); letter-spacing: 4px; }
+    #lobby > p { color: var(--dim); font-size: 14px; }
+    #lobby.hidden { display: none; }
+
+    .lobby-row { display: flex; gap: 8px; }
+
+    input {
+      padding: 8px 14px; border-radius: 8px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); font-size: 14px; width: 200px;
+    }
+
+    /* Room info card */
+    .room-info {
+      display: none; flex-direction: column; align-items: center; gap: 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 22px;
+    }
+    .room-info__label { font-size: 11px; color: var(--dim); letter-spacing: 1px; }
+    #room-id-display  { font-size: 1.3rem; font-weight: bold; color: var(--gold); letter-spacing: 3px; }
+    .room-info__actions { display: flex; gap: 8px; }
+
+    .btn-copy {
+      padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);
+      font-size: 12px; font-weight: bold; cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .btn-copy--id   { background: #1e1e3a; color: var(--text); }
+    .btn-copy--url  { background: #1a2e1a; color: #69db7c; border-color: var(--green); }
+    .btn-copy--done { background: var(--green) !important; color: #fff !important; border-color: var(--green) !important; }
+    .btn-enter {
+      background: #1a2a3a; color: #74c0fc; border-color: #2a4a6a;
+      width: 100%; text-align: center;
+    }
+    .btn-enter:hover { background: #1d3a5a !important; }
+
+    /* ── Botões comuns ── */
+    .ui-btn {
+      padding: 10px 24px; border-radius: 8px; border: none;
+      font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.15s;
+    }
+    .ui-btn--primary   { background: var(--accent); color: #fff; }
+    .ui-btn--secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .ui-btn:hover:not(:disabled) { filter: brightness(1.18); }
+    .ui-btn:disabled   { opacity: 0.45; cursor: not-allowed; }
+
+    /* ── Área de jogo ── */
+    #game-area {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 10px; padding: 12px; width: 100%;
+    }
+    #game-area.hidden { display: none; }
+
+    /* HUD */
+    #hud {
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+      justify-content: center;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 20px; font-size: 13px;
+      width: 100%; max-width: 500px;
+    }
+    #turn-display  { font-weight: bold; }
+    #color-display { color: var(--dim); font-size: 12px; }
+
+    /* Tabuleiro */
+    #board-container {
+      position: relative;
+      width: min(480px, 92vmin);
+      height: min(480px, 92vmin);
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+    }
+    #board-canvas {
+      width: 100%; height: 100%;
+      cursor: pointer;
+      image-rendering: pixelated;
+    }
+
+    /* Tutorial btn in-game */
+    #btn-tutorial-game {
+      padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--gold); font-size: 12px;
+      cursor: pointer; font-weight: bold;
+    }
+    #btn-tutorial-game:hover { background: var(--gold); color: #000; }
+
+    /* ── Modal ── */
+    .ui-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 8000; opacity: 0; transition: opacity 0.25s;
+    }
+    .ui-modal-overlay--visible { opacity: 1; }
+    .ui-modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 26px 28px;
+      min-width: 280px; max-width: 460px; max-height: 85vh; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .ui-modal__title { font-size: 1.1rem; font-weight: bold; color: var(--gold); }
+    .ui-modal__body  { font-size: 13px; line-height: 1.7; }
+    .ui-modal__actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+    /* Toast */
+    .ui-toast {
+      position: fixed; bottom: 20px; right: 20px; z-index: 9000;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 16px; font-size: 13px;
+      opacity: 0; transform: translateY(10px); transition: 0.3s;
+      max-width: 300px; pointer-events: none;
+    }
+    .ui-toast--visible { opacity: 1; transform: translateY(0); }
+    .ui-toast--error   { border-color: #c1121f; }
+    .ui-toast--info    { border-color: var(--accent); }
+
+    /* Scroll */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+  <!-- Botão de tutorial sempre visível -->
+  <button class="btn-tutorial" title="Como jogar">?</button>
+
+  <!-- Lobby -->
+  <div id="lobby">
+    <h1>♟ Dama</h1>
+    <p>Jogo de dama online — multiplayer P2P · sem servidor</p>
+
+    <button id="btn-create" class="ui-btn ui-btn--primary">Criar Sala</button>
+
+    <div class="lobby-row">
+      <input id="room-input" type="text" placeholder="Código da sala...">
+      <button id="btn-join" class="ui-btn ui-btn--secondary">Entrar</button>
+    </div>
+
+    <div id="room-info" class="room-info">
+      <span class="room-info__label">CÓDIGO DA SALA</span>
+      <span id="room-id-display"></span>
+      <div class="room-info__actions">
+        <button id="btn-copy-id"  class="btn-copy btn-copy--id"  data-label="Copiar ID">Copiar ID</button>
+        <button id="btn-copy-url" class="btn-copy btn-copy--url" data-label="Copiar Link">Copiar Link</button>
+      </div>
+      <button id="btn-enter-room" class="btn-copy btn-enter" style="display:none">
+        Entrar como 2º jogador ↗
+      </button>
+    </div>
+
+    <p style="font-size:12px;color:var(--dim);margin-top:4px">
+      🔴 Quem cria a sala joga com as peças <strong>vermelhas</strong> e começa primeiro.
+    </p>
+  </div>
+
+  <!-- Área de jogo -->
+  <div id="game-area" class="hidden">
+
+    <div id="hud">
+      <span id="red-count">🔴 12</span>
+      <span id="turn-display">Aguardando...</span>
+      <span id="white-count">⚪ 12</span>
+      <span id="color-display"></span>
+      <button id="btn-tutorial-game" class="btn-tutorial">Regras ?</button>
+    </div>
+
+    <div id="board-container">
+      <canvas id="board-canvas"></canvas>
+    </div>
+
+    <p style="font-size:11px;color:var(--dim);text-align:center">
+      Clique em uma peça para selecioná-la · Clique no destino para mover
+    </p>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

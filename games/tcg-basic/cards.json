@@ -1,0 +1,115 @@
+[
+  {
+    "id": "fire_elemental",
+    "name": "Fire Elemental",
+    "type": "creature",
+    "subtype": "Elemental",
+    "cost": 3,
+    "power": 3,
+    "toughness": 2,
+    "rarity": "uncommon",
+    "symbol": "🔥",
+    "description": "Ao entrar em campo: causa 1 de dano ao jogador oponente.",
+    "effect": "enter:damage:opponent:1"
+  },
+  {
+    "id": "ice_golem",
+    "name": "Ice Golem",
+    "type": "creature",
+    "subtype": "Golem",
+    "cost": 4,
+    "power": 4,
+    "toughness": 5,
+    "rarity": "rare",
+    "symbol": "❄",
+    "description": "Defensor. Reduz em 1 o dano recebido.",
+    "effect": "defender"
+  },
+  {
+    "id": "shadow_wolf",
+    "name": "Shadow Wolf",
+    "type": "creature",
+    "subtype": "Beast",
+    "cost": 2,
+    "power": 2,
+    "toughness": 1,
+    "rarity": "common",
+    "symbol": "🐺",
+    "description": "Furtivo. Ataca direto ao jogador.",
+    "effect": "evasion"
+  },
+  {
+    "id": "thunder_strike",
+    "name": "Thunder Strike",
+    "type": "spell",
+    "cost": 2,
+    "power": 4,
+    "rarity": "common",
+    "symbol": "⚡",
+    "description": "Causa 4 de dano a qualquer alvo.",
+    "effect": "instant:damage:target:4"
+  },
+  {
+    "id": "mana_surge",
+    "name": "Mana Surge",
+    "type": "spell",
+    "cost": 1,
+    "rarity": "uncommon",
+    "symbol": "✨",
+    "description": "Adiciona 3 de mana temporário neste turno.",
+    "effect": "mana:temp:3"
+  },
+  {
+    "id": "arcane_shield",
+    "name": "Arcane Shield",
+    "type": "spell",
+    "cost": 2,
+    "rarity": "common",
+    "symbol": "🛡",
+    "description": "Você ganha 4 pontos de vida.",
+    "effect": "heal:self:4"
+  },
+  {
+    "id": "void_dragon",
+    "name": "Void Dragon",
+    "type": "creature",
+    "subtype": "Dragon",
+    "cost": 7,
+    "power": 7,
+    "toughness": 6,
+    "rarity": "mythic",
+    "symbol": "🐉",
+    "description": "Voar. Ao atacar: causa 2 de dano ao oponente.",
+    "effect": "flying;attack:damage:opponent:2"
+  },
+  {
+    "id": "stone_wall",
+    "name": "Stone Wall",
+    "type": "artifact",
+    "cost": 3,
+    "rarity": "uncommon",
+    "symbol": "🗿",
+    "description": "Reduza em 1 todo dano recebido por criaturas aliadas.",
+    "effect": "passive:reduce-damage:allies:1"
+  },
+  {
+    "id": "healing_potion",
+    "name": "Healing Potion",
+    "type": "artifact",
+    "cost": 1,
+    "rarity": "common",
+    "symbol": "🧪",
+    "description": "Use uma vez: cure 3 de vida.",
+    "effect": "use:heal:self:3"
+  },
+  {
+    "id": "ancient_tome",
+    "name": "Ancient Tome",
+    "type": "artifact",
+    "cost": 2,
+    "rarity": "rare",
+    "symbol": "📖",
+    "description": "Compre uma carta extra por turno.",
+    "effect": "passive:draw-extra:1"
+  }
+]
