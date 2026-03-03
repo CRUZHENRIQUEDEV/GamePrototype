@@ -609,20 +609,25 @@
       <h1>Arena 3D</h1>
       <p>Combate 3D em tempo real — solo ou P2P</p>
 
-      <!-- Solo -->
-      <button id="btn-solo" class="ui-btn ui-btn--solo">
-        Jogar Solo (vs Bot)
-      </button>
-      <hr class="lobby-divider" />
-      <span class="lobby-label">Multijogador P2P</span>
+      <!-- Menu Inicial -->
+      <div id="lobby-menu">
+        <!-- Solo -->
+        <button id="btn-solo" class="ui-btn ui-btn--solo">
+          Jogar Solo (vs Bot)
+        </button>
+        <hr class="lobby-divider" />
+        <span class="lobby-label">Multijogador P2P</span>
 
-      <!-- P2P create -->
-      <button id="btn-create" class="ui-btn ui-btn--primary">Criar Sala</button>
+        <!-- P2P create -->
+        <button id="btn-create" class="ui-btn ui-btn--primary">
+          Criar Sala
+        </button>
 
-      <!-- P2P join -->
-      <div class="lobby-row">
-        <input id="room-input" placeholder="ID da sala..." />
-        <button id="btn-join" class="ui-btn ui-btn--secondary">Entrar</button>
+        <!-- P2P join -->
+        <div class="lobby-row">
+          <input id="room-input" placeholder="ID da sala..." />
+          <button id="btn-join" class="ui-btn ui-btn--secondary">Entrar</button>
+        </div>
       </div>
 
       <!-- Room info (after creating) -->

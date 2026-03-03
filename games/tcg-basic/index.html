@@ -281,9 +281,11 @@
         z-index: 8000;
         opacity: 0;
         transition: opacity 0.3s;
+        pointer-events: none;
       }
       .ui-modal-overlay--visible {
         opacity: 1;
+        pointer-events: auto;
       }
       .ui-modal {
         background: var(--surface);
@@ -366,6 +368,31 @@
     </style>
   </head>
   <body>
+    <!-- Botão Ajuda -->
+    <button
+      id="btn-help"
+      title="Ajuda"
+      style="
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--gold);
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      "
+    >
+      ?
+    </button>
+
     <!-- Tela de Lobby -->
     <div id="lobby-screen">
       <h1>TCG Basic</h1>
@@ -439,6 +466,39 @@
       <!-- Cemitério (decorativo por ora) -->
       <div id="graveyard" style="position: absolute; right: 12px; bottom: 80px">
         ⚰
+      </div>
+    </div>
+
+    <!-- Modal Ajuda -->
+    <div id="help-modal" class="ui-modal-overlay">
+      <div class="ui-modal">
+        <div class="ui-modal__title">Como Jogar</div>
+        <div class="ui-modal__body">
+          <p><strong>Objetivo:</strong> Reduza a vida do oponente a 0.</p>
+          <ul style="padding-left: 20px; margin-top: 8px">
+            <li>
+              Você começa com <strong>20 HP</strong> e <strong>0 Mana</strong>.
+            </li>
+            <li>A cada turno, sua mana máxima aumenta em 1 (até 10).</li>
+            <li>
+              Arraste cartas da mão para o campo para jogá-las (custam Mana).
+            </li>
+            <li>Arraste cartas do campo para o oponente para atacar.</li>
+            <li>
+              Fases: <strong>Principal</strong> (jogar cartas) →
+              <strong>Batalha</strong> (atacar) → <strong>Fim</strong>.
+            </li>
+          </ul>
+          <p style="margin-top: 10px; font-size: 12px; color: #888">
+            Dica: Criaturas recém-jogadas não podem atacar no mesmo turno (enjoo
+            de invocação).
+          </p>
+        </div>
+        <div class="ui-modal__actions">
+          <button id="btn-close-help" class="ui-btn ui-btn--primary">
+            Entendi
+          </button>
+        </div>
       </div>
     </div>
 

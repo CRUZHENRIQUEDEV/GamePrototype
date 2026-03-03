@@ -76,6 +76,26 @@ async function init() {
   }
 
   setupLobbyUI();
+  setupHelp();
+}
+
+function setupHelp() {
+  const btn = document.getElementById('btn-help');
+  const modal = document.getElementById('help-modal');
+  const close = document.getElementById('btn-close-help');
+
+  const toggle = () => {
+    modal.classList.toggle('ui-modal-overlay--visible');
+    modal.style.pointerEvents = modal.classList.contains('ui-modal-overlay--visible') ? 'auto' : 'none';
+  };
+
+  btn.addEventListener('click', toggle);
+  close.addEventListener('click', toggle);
+  
+  // Fecha ao clicar fora
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) toggle();
+  });
 }
 
 // ---------------------------------------------------------------------------

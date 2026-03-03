@@ -391,6 +391,7 @@ function setupNetworkEvents() {
 }
 
 function setupLobbyUI(roomId, amHost) {
+  document.getElementById("lobby-menu").style.display = "none";
   document.getElementById("room-display").textContent = roomId;
   document.getElementById("room-info").style.display = "flex";
 
@@ -425,12 +426,19 @@ function updateLobbyList() {
 
   if (isHost) {
     const btn = document.getElementById("btn-start-game");
-    // Pode iniciar sozinho se quiser testar, ou exigir min 2
-    btn.disabled = false;
-    btn.textContent =
-      players.size > 1
-        ? `INICIAR JOGO (${players.size})`
-        : "INICIAR (Aguardando...)";
+
+    // Regra: precisa de pelo menos 2 jogadores (exceto se for teste local/solo, mas aqui é net)
+    // Se quiser permitir iniciar sozinho, mude para > 0. O usuário pediu "PAUSADO ATE OUTROS ENTRAREM"
+    // Então vou bloquear se for < 2
+    const canStart = players.size >= 2;
+
+    btn.disabled = !canStart;
+    btn.textContent = canStart
+      ? `INICIAR JOGO (${players.size}/4)`
+      : `AGUARDANDO JOGADORES (${players.size}/4)...`;
+
+    btn.style.opacity = canStart ? "1" : "0.5";
+    btn.style.cursor = canStart ? "pointer" : "not-allowed";
   }
 }
 
@@ -534,7 +542,7 @@ function handleInput(delta, THREE) {
   }
 
   if (moveDir.lengthSq() > 0) moveDir.normalize();
-  p.move(moveDir, delta);
+  p.move(moveDir, delta, OBSTACLES);
 
   // Sync Network
   if (!isSolo && moveDir.lengthSq() > 0) {

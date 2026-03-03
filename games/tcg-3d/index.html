@@ -242,11 +242,18 @@
     <div id="lobby">
       <h1>TCG 3D</h1>
       <p>Mesa de jogo em Three.js · P2P multiplayer</p>
-      <button id="btn-create" class="ui-btn ui-btn--primary">Criar Sala</button>
-      <div class="lobby-row">
-        <input id="room-input" placeholder="ID da sala..." />
-        <button id="btn-join" class="ui-btn ui-btn--secondary">Entrar</button>
+      <!-- Menu Inicial -->
+      <div id="lobby-menu">
+        <button id="btn-create" class="ui-btn ui-btn--primary">
+          Criar Sala
+        </button>
+        <div class="lobby-row">
+          <input id="room-input" placeholder="ID da sala..." />
+          <button id="btn-join" class="ui-btn ui-btn--secondary">Entrar</button>
+        </div>
       </div>
+
+      <!-- Room Info -->
       <div id="room-info" class="room-info">
         <h2
           style="
@@ -279,6 +286,53 @@
         </div>
         <div class="lobby-status">
           <span>⏳ Aguardando oponente...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botão Ajuda -->
+    <button
+      id="btn-help"
+      title="Ajuda"
+      style="
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 1px solid #4a7fcb;
+        background: rgba(0, 0, 0, 0.5);
+        color: #fff;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 100;
+      "
+    >
+      ?
+    </button>
+
+    <!-- Help Overlay -->
+    <div id="help-overlay" class="ui-modal-overlay">
+      <div class="ui-modal">
+        <h2 class="ui-modal__title">Como Jogar</h2>
+        <div style="font-size: 13px; color: #ccc; line-height: 1.6">
+          <p>• <strong>Objetivo:</strong> Reduza o HP do oponente a zero.</p>
+          <p>
+            • <strong>Turno:</strong> Compre carta, jogue monstros/magias,
+            ataque.
+          </p>
+          <p>• <strong>Controles:</strong></p>
+          <ul style="margin-left: 20px">
+            <li>Clique e arraste para jogar cartas.</li>
+            <li>Clique nos monstros para atacar.</li>
+            <li>Botão direito para orbitar a câmera.</li>
+          </ul>
+        </div>
+        <div class="ui-modal__actions">
+          <button id="help-close" class="ui-btn ui-btn--primary">
+            Entendi
+          </button>
         </div>
       </div>
     </div>

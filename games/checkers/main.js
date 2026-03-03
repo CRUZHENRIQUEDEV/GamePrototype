@@ -113,6 +113,8 @@ function setupLobby() {
     localId = await network.createRoom(roomId);
     const inviteUrl = `${location.origin}${location.pathname}?join=${roomId}`;
 
+    // Esconde menu inicial
+    document.getElementById("lobby-menu").style.display = "none";
     document.getElementById("room-id-display").textContent = roomId;
     document.getElementById("room-info").style.display = "flex";
 
@@ -455,7 +457,6 @@ function showTutorial() {
       <ul style="padding-left:1.2rem;margin:4px 0">
         <li>🟨 Casa dourada = peça selecionada</li>
         <li>🟢 Pontos verdes = destinos disponíveis</li>
-        <li>🔴 Anel vermelho pontilhado = captura obrigatória</li>
       </ul>
 
       <p style="margin-top:10px;color:#888;font-size:11px">

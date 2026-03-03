@@ -56,11 +56,24 @@ export class Player {
    * Move na direção dada, rotaciona o corpo e aplica limites da arena.
    * @param {THREE.Vector3} direction  vetor normalizado
    * @param {number}        delta      segundos desde o último frame
+   * @param {Array}         obstacles  lista de obstáculos [[x, z], ...]
    */
-  move(direction, delta) {
+  move(direction, delta, obstacles = []) {
     const speed = this.speed * delta;
+    const oldX = this.group.position.x;
+    const oldZ = this.group.position.z;
+
+    // Tentativa de movimento no eixo X
     this.group.position.x += direction.x * speed;
+    if (this._checkCollision(obstacles)) {
+      this.group.position.x = oldX; // Reverte se colidir
+    }
+
+    // Tentativa de movimento no eixo Z
     this.group.position.z += direction.z * speed;
+    if (this._checkCollision(obstacles)) {
+      this.group.position.z = oldZ; // Reverte se colidir
+    }
 
     if (direction.length() > 0.01) {
       // atan2(-x, -z) faz o corpo encarar a direção do movimento
@@ -69,6 +82,21 @@ export class Player {
 
     this.group.position.x = Math.max(-9.2, Math.min(9.2, this.group.position.x));
     this.group.position.z = Math.max(-5.2, Math.min(5.2, this.group.position.z));
+  }
+
+  _checkCollision(obstacles) {
+    const radius = 0.4; // Raio do player
+    const obstSize = 0.75; // Metade da largura do obstáculo (1.5 / 2)
+    const threshold = radius + obstSize;
+
+    for (const [ox, oz] of obstacles) {
+      const dx = Math.abs(this.group.position.x - ox);
+      const dz = Math.abs(this.group.position.z - oz);
+      if (dx < threshold && dz < threshold) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /** Rotaciona o corpo para encarar uma posição (bot AI). */
