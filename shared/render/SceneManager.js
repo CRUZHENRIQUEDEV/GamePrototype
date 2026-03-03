@@ -104,18 +104,21 @@ export class SceneManager {
 
   /** Helpers de criação de objetos comuns */
   createPlane(w, h, color = 0x2d6a4f, options = {}) {
+    const { receiveShadow, ...matOptions } = options;
     const geo  = new this._THREE.PlaneGeometry(w, h);
-    const mat  = new this._THREE.MeshStandardMaterial({ color, ...options });
+    const mat  = new this._THREE.MeshStandardMaterial({ color, ...matOptions });
     const mesh = new this._THREE.Mesh(geo, mat);
-    if (options.receiveShadow) mesh.receiveShadow = true;
+    if (receiveShadow) mesh.receiveShadow = true;
     return mesh;
   }
 
   createBox(w, h, d, color = 0x4a4e69, options = {}) {
+    const { castShadow, receiveShadow, ...matOptions } = options;
     const geo  = new this._THREE.BoxGeometry(w, h, d);
-    const mat  = new this._THREE.MeshStandardMaterial({ color, ...options });
+    const mat  = new this._THREE.MeshStandardMaterial({ color, ...matOptions });
     const mesh = new this._THREE.Mesh(geo, mat);
-    if (options.castShadow) mesh.castShadow = true;
+    if (castShadow) mesh.castShadow = true;
+    if (receiveShadow) mesh.receiveShadow = true;
     return mesh;
   }
 

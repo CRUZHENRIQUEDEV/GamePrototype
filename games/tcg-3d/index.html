@@ -1,127 +1,312 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TCG 3D</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0a0a12; color: #e0e0f0; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TCG 3D</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: #0a0a12;
+        color: #e0e0f0;
+        font-family: "Segoe UI", sans-serif;
+        overflow: hidden;
+        height: 100vh;
+      }
 
-    #canvas { width: 100vw; height: 100vh; display: block; }
+      #canvas {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+      }
 
-    /* Lobby */
-    #lobby {
-      position: fixed; inset: 0; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 14px;
-      background: rgba(10,10,18,0.95); z-index: 100;
-    }
-    #lobby h1 { font-size: 2.4rem; color: #d4af37; }
-    #lobby p   { color: #888; font-size: 13px; }
-    .lobby-row { display: flex; gap: 8px; }
-    input {
-      padding: 8px 14px; border-radius: 8px; background: #1a1a2e;
-      border: 1px solid #2a2a5a; color: #e0e0f0; font-size: 14px; width: 200px;
-    }
-    #lobby.hidden { display: none; }
+      /* Lobby */
+      #lobby {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        background: rgba(10, 10, 18, 0.95);
+        z-index: 100;
+      }
+      #lobby h1 {
+        font-size: 2.4rem;
+        color: #d4af37;
+      }
+      #lobby p {
+        color: #888;
+        font-size: 13px;
+      }
+      .lobby-row {
+        display: flex;
+        gap: 8px;
+      }
+      input {
+        padding: 8px 14px;
+        border-radius: 8px;
+        background: #1a1a2e;
+        border: 1px solid #2a2a5a;
+        color: #e0e0f0;
+        font-size: 14px;
+        width: 200px;
+      }
+      #lobby.hidden {
+        display: none;
+      }
 
-    /* HUD overlay */
-    #hud {
-      position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
-      background: rgba(20,20,40,0.85); border: 1px solid #2a2a5a;
-      border-radius: 10px; padding: 6px 18px; display: none;
-      gap: 18px; align-items: center; font-size: 13px; z-index: 50;
-    }
-    #hud.visible { display: flex; }
-    #hint { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
-            font-size: 12px; color: #666; }
+      /* HUD overlay */
+      #hud {
+        position: fixed;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(20, 20, 40, 0.85);
+        border: 1px solid #2a2a5a;
+        border-radius: 10px;
+        padding: 6px 18px;
+        display: none;
+        gap: 18px;
+        align-items: center;
+        font-size: 13px;
+        z-index: 50;
+      }
+      #hud.visible {
+        display: flex;
+      }
+      #hint {
+        position: fixed;
+        bottom: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 12px;
+        color: #666;
+      }
 
-    /* Botões */
-    .ui-btn { padding: 8px 18px; border-radius: 8px; border: none; font-size: 14px; cursor: pointer; font-weight: bold; }
-    .ui-btn--primary   { background: #4a7fcb; color: #fff; }
-    .ui-btn--secondary { background: #1a1a2e; color: #e0e0f0; border: 1px solid #2a2a5a; }
-    .ui-btn:hover { filter: brightness(1.2); }
+      /* Botões */
+      .ui-btn {
+        padding: 8px 18px;
+        border-radius: 8px;
+        border: none;
+        font-size: 14px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .ui-btn--primary {
+        background: #4a7fcb;
+        color: #fff;
+      }
+      .ui-btn--secondary {
+        background: #1a1a2e;
+        color: #e0e0f0;
+        border: 1px solid #2a2a5a;
+      }
+      .ui-btn:hover {
+        filter: brightness(1.2);
+      }
 
-    /* Modal */
-    .ui-modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 8000; opacity: 0; transition: opacity 0.3s;
-    }
-    .ui-modal-overlay--visible { opacity: 1; }
-    .ui-modal {
-      background: #1a1a2e; border: 1px solid #2a2a5a; border-radius: 14px;
-      padding: 28px 32px; min-width: 260px; display: flex; flex-direction: column; gap: 16px;
-    }
-    .ui-modal__title { color: #d4af37; font-size: 1.2rem; font-weight: bold; }
-    .ui-modal__actions { display: flex; gap: 8px; justify-content: flex-end; }
+      /* Modal */
+      .ui-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 8000;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      .ui-modal-overlay--visible {
+        opacity: 1;
+      }
+      .ui-modal {
+        background: #1a1a2e;
+        border: 1px solid #2a2a5a;
+        border-radius: 14px;
+        padding: 28px 32px;
+        min-width: 260px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .ui-modal__title {
+        color: #d4af37;
+        font-size: 1.2rem;
+        font-weight: bold;
+      }
+      .ui-modal__actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+      }
 
-    /* Toast */
-    .ui-toast {
-      position: fixed; bottom: 20px; right: 20px; z-index: 9000;
-      background: #1a1a2e; border: 1px solid #2a2a5a;
-      border-radius: 10px; padding: 10px 18px; font-size: 13px;
-      opacity: 0; transform: translateY(10px); transition: 0.3s;
-    }
-    .ui-toast--visible { opacity: 1; transform: translateY(0); }
-    .ui-toast--error { border-color: #c1121f; }
-    .ui-toast--info  { border-color: #4a7fcb; }
+      /* Toast */
+      .ui-toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9000;
+        background: #1a1a2e;
+        border: 1px solid #2a2a5a;
+        border-radius: 10px;
+        padding: 10px 18px;
+        font-size: 13px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: 0.3s;
+      }
+      .ui-toast--visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .ui-toast--error {
+        border-color: #c1121f;
+      }
+      .ui-toast--info {
+        border-color: #4a7fcb;
+      }
 
-    .room-info {
-      display: none; flex-direction: column; align-items: center; gap: 10px;
-      background: #1a1a2e; border: 1px solid #2a2a5a; border-radius: 12px; padding: 14px 22px;
-    }
-    .room-info__label { font-size: 11px; color: #666; letter-spacing: 1px; }
-    #room-display     { font-size: 1.2rem; font-weight: bold; color: #d4af37; letter-spacing: 3px; }
-    .room-info__actions { display: flex; gap: 8px; }
-    .btn-copy {
-      padding: 6px 14px; border-radius: 6px; border: 1px solid #2a2a5a;
-      font-size: 12px; font-weight: bold; cursor: pointer;
-      transition: background 0.2s, color 0.2s, border-color 0.2s;
-    }
-    .btn-copy--id  { background: #1e1e3a; color: #e0e0f0; }
-    .btn-copy--url { background: #1a2e1a; color: #69db7c; border-color: #2d6a4f; }
-    .btn-copy--done { background: #2d6a4f !important; color: #fff !important; border-color: #2d6a4f !important; }
-    .btn-enter { background: #1a2a3a; color: #74c0fc; border-color: #2a4a6a; width: 100%; text-align: center; }
-    .btn-enter:hover { background: #1d3a5a !important; }
-  </style>
-</head>
-<body>
-  <canvas id="canvas"></canvas>
+      .room-info {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        background: #1a1a2e;
+        border: 1px solid #2a2a5a;
+        border-radius: 12px;
+        padding: 14px 22px;
+      }
+      .room-info__label {
+        font-size: 11px;
+        color: #666;
+        letter-spacing: 1px;
+      }
+      #room-display {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #d4af37;
+        letter-spacing: 3px;
+      }
+      .room-info__actions {
+        display: flex;
+        gap: 8px;
+      }
+      .btn-copy {
+        padding: 6px 14px;
+        border-radius: 6px;
+        border: 1px solid #2a2a5a;
+        font-size: 12px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s, border-color 0.2s;
+      }
+      .btn-copy--id {
+        background: #1e1e3a;
+        color: #e0e0f0;
+      }
+      .btn-copy--url {
+        background: #1a2e1a;
+        color: #69db7c;
+        border-color: #2d6a4f;
+      }
+      .btn-copy--done {
+        background: #2d6a4f !important;
+        color: #fff !important;
+        border-color: #2d6a4f !important;
+      }
+      .btn-enter {
+        background: #1a2a3a;
+        color: #74c0fc;
+        border-color: #2a4a6a;
+        width: 100%;
+        text-align: center;
+      }
+      .btn-enter:hover {
+        background: #1d3a5a !important;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
 
-  <!-- Lobby -->
-  <div id="lobby">
-    <h1>TCG 3D</h1>
-    <p>Mesa de jogo em Three.js · P2P multiplayer</p>
-    <button id="btn-create" class="ui-btn ui-btn--primary">Criar Sala</button>
-    <div class="lobby-row">
-      <input id="room-input" placeholder="ID da sala...">
-      <button id="btn-join" class="ui-btn ui-btn--secondary">Entrar</button>
-    </div>
-    <div id="room-info" class="room-info">
-      <span class="room-info__label">CÓDIGO DA SALA</span>
-      <span id="room-display"></span>
-      <div class="room-info__actions">
-        <button id="btn-copy-id"  class="btn-copy btn-copy--id"  data-label="Copiar ID">Copiar ID</button>
-        <button id="btn-copy-url" class="btn-copy btn-copy--url" data-label="Copiar Link">Copiar Link</button>
+    <!-- Lobby -->
+    <div id="lobby">
+      <h1>TCG 3D</h1>
+      <p>Mesa de jogo em Three.js · P2P multiplayer</p>
+      <button id="btn-create" class="ui-btn ui-btn--primary">Criar Sala</button>
+      <div class="lobby-row">
+        <input id="room-input" placeholder="ID da sala..." />
+        <button id="btn-join" class="ui-btn ui-btn--secondary">Entrar</button>
       </div>
-      <div class="lobby-status">
-        <span>⏳ Aguardando oponente...</span>
+      <div id="room-info" class="room-info">
+        <h2
+          style="
+            color: #d4af37;
+            font-size: 1.4rem;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+          "
+        >
+          Lobby - Sala de Espera
+        </h2>
+        <span class="room-info__label">CÓDIGO DA SALA</span>
+        <span id="room-display"></span>
+        <div class="room-info__actions">
+          <button
+            id="btn-copy-id"
+            class="btn-copy btn-copy--id"
+            data-label="Copiar ID"
+          >
+            Copiar ID
+          </button>
+          <button
+            id="btn-copy-url"
+            class="btn-copy btn-copy--url"
+            data-label="Copiar Link"
+          >
+            Copiar Link
+          </button>
+        </div>
+        <div class="lobby-status">
+          <span>⏳ Aguardando oponente...</span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- HUD -->
-  <div id="hud">
-    <span id="opponent-hp" style="color:#c1121f;font-weight:bold">HP: 20</span>
-    <span id="mana-display" style="color:#74c0fc">Mana: 0/0</span>
-    <span id="phase-display" style="color:#d4af37">Fase: —</span>
-    <span id="hp-display" style="color:#69db7c;font-weight:bold">HP: 20</span>
-    <button id="btn-end-phase" class="ui-btn" style="background:#d4af37;color:#000" disabled>Próxima Fase</button>
-  </div>
+    <!-- HUD -->
+    <div id="hud">
+      <span id="opponent-hp" style="color: #c1121f; font-weight: bold"
+        >HP: 20</span
+      >
+      <span id="mana-display" style="color: #74c0fc">Mana: 0/0</span>
+      <span id="phase-display" style="color: #d4af37">Fase: —</span>
+      <span id="hp-display" style="color: #69db7c; font-weight: bold"
+        >HP: 20</span
+      >
+      <button
+        id="btn-end-phase"
+        class="ui-btn"
+        style="background: #d4af37; color: #000"
+        disabled
+      >
+        Próxima Fase
+      </button>
+    </div>
 
-  <div id="hint">Passe o mouse sobre as cartas · Space para jogar · Orbite com o mouse</div>
+    <div id="hint">
+      Passe o mouse sobre as cartas · Space para jogar · Orbite com o mouse
+    </div>
 
-  <script type="module" src="./main.js"></script>
-</body>
+    <script type="module" src="./main.js"></script>
+  </body>
 </html>
