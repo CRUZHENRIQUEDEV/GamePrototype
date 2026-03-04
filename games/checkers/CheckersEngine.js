@@ -102,6 +102,58 @@ export class CheckersEngine {
     return list;
   }
 
+  // ── Bot AI ──────────────────────────────────────────────────────────────
+
+  getBotMove(color) {
+    const { board } = this.state;
+    let candidatePieces = [];
+
+    // 1. Check for forced captures
+    const forced = this.getForcedPieces();
+    if (forced.length > 0) {
+      candidatePieces = forced;
+    } else {
+      // 2. Get all pieces with valid moves
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const piece = board[r][c];
+          if (piece && piece.color === color) {
+            // Check if this piece has any moves
+            if (this._getMovesForPiece(r, c).length > 0) {
+              candidatePieces.push({ row: r, col: c });
+            }
+          }
+        }
+      }
+    }
+
+    if (candidatePieces.length === 0) return null;
+
+    // 3. Pick a random piece
+    const piece =
+      candidatePieces[Math.floor(Math.random() * candidatePieces.length)];
+
+    // 4. Get moves for that piece
+    const moves = this._getMovesForPiece(piece.row, piece.col);
+
+    // Filter moves: if forced capture exists, only consider captures
+    const validMoves = moves.filter((m) => {
+      if (forced.length > 0) {
+        return m.captures && m.captures.length > 0;
+      }
+      return true;
+    });
+
+    if (validMoves.length === 0) return null;
+
+    const move = validMoves[Math.floor(Math.random() * validMoves.length)];
+
+    return {
+      from: piece,
+      to: { row: move.row, col: move.col },
+    };
+  }
+
   // ── Internos ────────────────────────────────────────────────────────────
 
   _doMove(fr, fc, tr, tc, captures) {

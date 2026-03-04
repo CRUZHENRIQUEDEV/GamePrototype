@@ -12,6 +12,34 @@ export class Board {
   }
 
   /**
+   * @method canInsertAtHead
+   * @description Verifica se é possível inserir uma peça no início.
+   * @param {Piece} piece
+   * @returns {boolean}
+   */
+  canInsertAtHead(piece) {
+    if (this.size === 0) return true;
+
+    // Check if connects to head.piece.left
+    const headLeft = this.head.piece.left;
+    return piece.left === headLeft || piece.right === headLeft;
+  }
+
+  /**
+   * @method canInsertAtTail
+   * @description Verifica se é possível inserir uma peça no fim.
+   * @param {Piece} piece
+   * @returns {boolean}
+   */
+  canInsertAtTail(piece) {
+    if (this.size === 0) return true;
+
+    // Check if connects to tail.piece.right
+    const tailRight = this.tail.piece.right;
+    return piece.left === tailRight || piece.right === tailRight;
+  }
+
+  /**
    * @method insertAtHead
    * @description Tenta inserir uma peça no início do tabuleiro.
    * @param {Piece} piece - A peça a ser inserida.
@@ -27,81 +55,28 @@ export class Board {
       return 0;
     }
 
-    // Uma única peça - verifica conexão
-    if (this.size === 1) {
-      const headPiece = this.head.piece;
+    const headLeft = this.head.piece.left;
 
-      // Tenta conectar na esquerda (HEAD)
-      if (piece.getHeads().includes(headPiece.left)) {
-        const newNode = new BoardNode(piece);
-        newNode.next = this.head;
-        this.head.prev = newNode;
-        this.head = newNode;
-        this.size++;
-        return 2;
-      }
-
-      // Se não deu na esquerda, tenta conectar de qualquer jeito (vai pra direita/TAIL)
-      if (piece.canConnectTo(headPiece)) {
-        const newNode = new BoardNode(piece);
-        newNode.prev = this.head;
-        this.head.next = newNode;
-        this.tail = newNode;
-        this.size++;
-        return 1;
-      }
-      return -1;
+    // Verifica compatibilidade e orienta a peça
+    if (piece.right === headLeft) {
+      // Já está orientado corretamente [A|B] -> [B|C]
+    } else if (piece.left === headLeft) {
+      // Precisa girar [B|A] -> [B|C]
+      // No dominó lógico, apenas trocamos a visualização ou a lógica?
+      // Vamos trocar os valores lógicos para facilitar a cadeia
+      const temp = piece.left;
+      piece.left = piece.right;
+      piece.right = temp;
+    } else {
+      return -1; // Não conecta
     }
 
-    // Múltiplas peças
-    // Verifica primeira casa (match na esquerda da head)
-    const firstHeadLeft = this.head.piece.left;
-    const pieceHeads = piece.getHeads();
-
-    if (pieceHeads.includes(firstHeadLeft)) {
-      const newNode = new BoardNode(piece);
-      newNode.next = this.head;
-      this.head.prev = newNode;
-      this.head = newNode;
-      this.size++;
-      return 2;
-    }
-
-    // Verifica última casa (match na direita da tail)
-    const lastHeadRight = this.tail.piece.right;
-    if (pieceHeads.includes(lastHeadRight)) {
-      const newNode = new BoardNode(piece);
-      newNode.prev = this.tail;
-      this.tail.next = newNode;
-      this.tail = newNode;
-      this.size++;
-      return 1;
-    }
-
-    // Verifica casas intermediárias - busca do início
-    let current = this.head;
-    let steps = 0;
-
-    while (current && current.next) {
-      const currentRight = current.piece.right;
-      const nextLeft = current.next.piece.left;
-
-      if (pieceHeads.includes(currentRight) && pieceHeads.includes(nextLeft)) {
-        // Insere entre current e current.next
-        const newNode = new BoardNode(piece);
-        newNode.prev = current;
-        newNode.next = current.next;
-        current.next.prev = newNode;
-        current.next = newNode;
-        this.size++;
-        return this.size - steps - 1;
-      }
-
-      current = current.next;
-      steps++;
-    }
-
-    return -1;
+    const newNode = new BoardNode(piece);
+    newNode.next = this.head;
+    this.head.prev = newNode;
+    this.head = newNode;
+    this.size++;
+    return 2;
   }
 
   /**
@@ -112,75 +87,29 @@ export class Board {
    */
   insertAtTail(piece) {
     if (this.size === 0) {
-      const newNode = new BoardNode(piece);
-      this.head = newNode;
-      this.tail = newNode;
-      this.size = 1;
-      return 0;
+      return this.insertAtHead(piece);
     }
 
-    if (this.size === 1) {
-      if (piece.canConnectTo(this.head.piece)) {
-        // Original logic for size 1 in insertAtTail: insert BEFORE head
-        const newNode = new BoardNode(piece);
-        newNode.next = this.head;
-        this.head.prev = newNode;
-        this.head = newNode;
-        this.size++;
-        return 1;
-      }
-      return -1;
+    const tailRight = this.tail.piece.right;
+
+    // Verifica compatibilidade e orienta a peça
+    if (piece.left === tailRight) {
+      // Já está orientado corretamente [A|B] -> [B|C]
+    } else if (piece.right === tailRight) {
+      // Precisa girar
+      const temp = piece.left;
+      piece.left = piece.right;
+      piece.right = temp;
+    } else {
+      return -1; // Não conecta
     }
 
-    // Múltiplas peças
-    // Verifica primeira casa (match na esquerda da head)
-    const firstHeadLeft = this.head.piece.left;
-    const pieceHeads = piece.getHeads();
-
-    if (pieceHeads.includes(firstHeadLeft)) {
-      const newNode = new BoardNode(piece);
-      newNode.next = this.head;
-      this.head.prev = newNode;
-      this.head = newNode;
-      this.size++;
-      return 2;
-    }
-
-    // Verifica última casa (match na direita da tail)
-    const lastHeadRight = this.tail.piece.right;
-    if (pieceHeads.includes(lastHeadRight)) {
-      const newNode = new BoardNode(piece);
-      newNode.prev = this.tail;
-      this.tail.next = newNode;
-      this.tail = newNode;
-      this.size++;
-      return 1;
-    }
-
-    // Verifica casas intermediárias - busca do FIM
-    let current = this.tail;
-    let steps = 0;
-
-    while (current && current.prev) {
-      const currentLeft = current.piece.left;
-      const prevRight = current.prev.piece.right;
-
-      if (pieceHeads.includes(currentLeft) && pieceHeads.includes(prevRight)) {
-        // Insere entre current.prev e current
-        const newNode = new BoardNode(piece);
-        newNode.prev = current.prev;
-        newNode.next = current;
-        current.prev.next = newNode;
-        current.prev = newNode;
-        this.size++;
-        return this.size - steps - 1;
-      }
-
-      current = current.prev;
-      steps++;
-    }
-
-    return -1;
+    const newNode = new BoardNode(piece);
+    newNode.prev = this.tail;
+    this.tail.next = newNode;
+    this.tail = newNode;
+    this.size++;
+    return 1;
   }
 
   /**

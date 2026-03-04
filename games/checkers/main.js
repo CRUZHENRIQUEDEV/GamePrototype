@@ -1,5 +1,5 @@
 // games/checkers/main.js
-// Dama online — renderização canvas, multiplayer P2P, tutorial
+// Dama online — renderização canvas, multiplayer P2P, tutorial e Bot
 
 import { bus } from "../../shared/core/EventBus.js";
 import { network } from "../../shared/network/NetworkManager.js";
@@ -7,14 +7,16 @@ import { UIManager } from "../../shared/ui/UIManager.js";
 import { ParticleSystem2D } from "../../shared/render/ParticleSystem.js";
 import { SoundSynth } from "../../shared/audio/SoundSynth.js";
 import { CheckersEngine } from "./CheckersEngine.js";
+import { pieceCreator } from "../../shared/render/SvgPieceCreator.js";
+import { loader } from "../../shared/core/AssetLoader.js";
 
 // ── Constantes ──────────────────────────────────────────────────────────────
 const CELL = 60;
 const SIZE = 8 * CELL; // 480
 
 const COLORS = {
-  darkCell: "#3a7d44",
-  lightCell: "#f0d9b5",
+  darkCell: "#3a7d44", // var(--cell-dark)
+  lightCell: "#f0d9b5", // var(--cell-light)
   selectedCell: "#e6a817",
   validBg: "rgba(80, 220, 100, 0.28)",
   validDot: "rgba(30, 200, 60, 0.85)",
@@ -25,7 +27,7 @@ const COLORS = {
   white: "#ecf0f1",
   whiteShine: "#ffffff",
   kingGold: "#f1c40f",
-  border: "#d4af37",
+  border: "#d4af37", // var(--board-border)
 };
 
 // ── Referências DOM ──────────────────────────────────────────────────────────
@@ -39,6 +41,7 @@ let engine = null;
 let localId = null;
 let opponentId = null;
 let localColor = "red"; // host = red, client = white
+let isBotMode = false;
 
 const ui = new UIManager();
 const fx = new ParticleSystem2D(document.body);
@@ -48,29 +51,20 @@ const synth = new SoundSynth();
 let _muted = false;
 
 function setupMuteButtons() {
-  const btns = [
-    document.getElementById("btn-mute"),
-    document.getElementById("btn-mute-game"),
-  ];
-  btns.forEach((btn) => {
-    if (!btn) return;
-    btn.addEventListener("click", () => {
-      synth.init(); // garante inicialização no clique
-      _muted = !_muted;
-      synth.setVolume(_muted ? 0 : 0.85);
-      const icon = _muted ? "🔇" : "🔊";
-      const label = _muted ? "🔇 Mudo" : "🔊 Som";
-      document.getElementById("btn-mute")?.textContent &&
-        (document.getElementById("btn-mute").textContent = icon);
-      document.getElementById("btn-mute-game")?.textContent &&
-        (document.getElementById("btn-mute-game").textContent = label);
-      btns.forEach((b) => b?.classList.toggle("muted", _muted));
-    });
+  const btn = document.getElementById("btn-mute");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    synth.init(); // garante inicialização no clique
+    _muted = !_muted;
+    synth.setVolume(_muted ? 0 : 0.85);
+    btn.textContent = _muted ? "🔇" : "🔊";
+    btn.title = _muted ? "Ativar Som" : "Mutar Som";
   });
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────
 function init() {
+  loadPieceAssets();
   setupLobby();
   setupMuteButtons();
   drawIdleScreen();
@@ -78,10 +72,13 @@ function init() {
   // Inicializa áudio no primeiro gesto (exigência dos browsers)
   document.addEventListener("pointerdown", () => synth.init(), { once: true });
 
-  // Tutorial button (lobby + in-game)
-  document
-    .querySelectorAll(".btn-tutorial")
-    .forEach((btn) => btn.addEventListener("click", showTutorial));
+  // Tutorial button
+  const btnTutorial = document.getElementById("btn-tutorial");
+  if (btnTutorial) btnTutorial.addEventListener("click", showTutorial);
+
+  // Quit button
+  const btnQuit = document.getElementById("btn-quit");
+  if (btnQuit) btnQuit.addEventListener("click", () => location.reload());
 }
 
 function drawIdleScreen() {
@@ -100,23 +97,64 @@ function drawIdleScreen() {
   ctx.fillText("Aguardando jogo...", SIZE / 2, SIZE / 2);
 }
 
+// ── Assets ────────────────────────────────────────────────────────────────
+async function loadPieceAssets() {
+  const manifest = [
+    {
+      key: "red-man",
+      url: pieceCreator.createCheckersPieceDataUrl("red", false, CELL),
+      type: "image",
+    },
+    {
+      key: "red-king",
+      url: pieceCreator.createCheckersPieceDataUrl("red", true, CELL),
+      type: "image",
+    },
+    {
+      key: "white-man",
+      url: pieceCreator.createCheckersPieceDataUrl("white", false, CELL),
+      type: "image",
+    },
+    {
+      key: "white-king",
+      url: pieceCreator.createCheckersPieceDataUrl("white", true, CELL),
+      type: "image",
+    },
+  ];
+  await loader.load(manifest);
+}
+
 // ── Lobby ─────────────────────────────────────────────────────────────────
 function setupLobby() {
   const btnCreate = document.getElementById("btn-create");
   const btnJoin = document.getElementById("btn-join");
+  const btnBot = document.getElementById("btn-bot");
   const roomInput = document.getElementById("room-input");
 
+  // Bot Mode
+  btnBot.addEventListener("click", () => {
+    isBotMode = true;
+    localColor = "red";
+    opponentId = "BOT";
+    startGame();
+  });
+
+  // Multiplayer Create
   btnCreate.addEventListener("click", async () => {
+    isBotMode = false;
     btnCreate.disabled = true;
     btnCreate.textContent = "Criando...";
     const roomId = `dama-${Math.random().toString(36).slice(2, 7)}`;
     localId = await network.createRoom(roomId);
     const inviteUrl = `${location.origin}${location.pathname}?join=${roomId}`;
 
-    // Esconde menu inicial
-    document.getElementById("lobby-menu").style.display = "none";
+    // Esconde menu inicial (mas mantém lobby container para mostrar info)
+    document.querySelector(".actions").classList.add("hidden");
+    document.querySelector("p.subtitle").classList.add("hidden");
+
+    const roomInfo = document.getElementById("room-info");
+    roomInfo.classList.remove("hidden");
     document.getElementById("room-id-display").textContent = roomId;
-    document.getElementById("room-info").style.display = "flex";
 
     document
       .getElementById("btn-copy-id")
@@ -129,7 +167,6 @@ function setupLobby() {
         copyToClipboard(inviteUrl, this);
       });
 
-    // Removido botão de auto-entrar, agora aguarda oponente
     ui.toast("Sala criada! Aguardando oponente...", "info", 4000);
 
     bus.on("net:peer-joined", ({ peerId }) => {
@@ -139,9 +176,11 @@ function setupLobby() {
     });
   });
 
+  // Multiplayer Join
   btnJoin.addEventListener("click", async () => {
     const roomId = roomInput.value.trim();
     if (!roomId) return;
+    isBotMode = false;
     btnJoin.disabled = true;
     btnJoin.textContent = "Entrando...";
     localId = await network.joinRoom(roomId);
@@ -166,7 +205,10 @@ function startGame() {
   engine = new CheckersEngine();
   engine.initGame();
 
-  setupNetworkSync();
+  if (!isBotMode) {
+    setupNetworkSync();
+  }
+
   setupCanvasClick();
   renderBoard();
   updateHUD();
@@ -178,20 +220,27 @@ function startGame() {
 function setupCanvasClick() {
   canvas.addEventListener("click", (e) => {
     if (!engine || engine.state.phase !== "playing") return;
+
+    // Check turn
     if (engine.state.turn !== localColor) {
-      ui.toast("Aguarde seu turno.", "error", 1200);
+      if (!isBotMode) ui.toast("Aguarde seu turno.", "error", 1200);
       return;
     }
+
     const rect = canvas.getBoundingClientRect();
-    const col = Math.floor(((e.clientX - rect.left) / rect.width) * 8);
-    const row = Math.floor(((e.clientY - rect.top) / rect.height) * 8);
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const col = Math.floor(((e.clientX - rect.left) * scaleX) / CELL);
+    const row = Math.floor(((e.clientY - rect.top) * scaleY) / CELL);
+
     if (row < 0 || row > 7 || col < 0 || col > 7) return;
     handleCellClick(row, col);
   });
 }
 
 function handleCellClick(row, col) {
-  const { selected, validMoves, board } = engine.state;
+  const { selected, validMoves } = engine.state;
 
   // Tentando mover para destino válido
   if (selected) {
@@ -200,9 +249,14 @@ function handleCellClick(row, col) {
       const savedSelected = { ...selected };
       const result = engine.move(row, col);
       if (result) {
-        // Som de movimento (será sobrescrito pelo de captura em handleMoveResult se houver)
+        // Som
         if (!result.captured?.length) synth.move();
-        network.broadcast("move", { from: savedSelected, to: { row, col } });
+
+        // Network broadcast if P2P
+        if (!isBotMode) {
+          network.broadcast("move", { from: savedSelected, to: { row, col } });
+        }
+
         handleMoveResult(result, row, col);
         renderBoard();
         updateHUD();
@@ -229,6 +283,7 @@ function handleMoveResult(result, toRow, toCol) {
     const rect = canvas.getBoundingClientRect();
     const cellW = rect.width / 8;
     const cellH = rect.height / 8;
+
     result.captured.forEach(({ row, col, color }) => {
       fx.burst(
         rect.left + (col + 0.5) * cellW,
@@ -274,8 +329,65 @@ function handleMoveResult(result, toRow, toCol) {
 
   if (result.chainCapture) {
     ui.toast("Capture novamente!", "info", 1500);
-    engine.selectPiece(toRow, toCol);
+    // If it's a bot chain capture, we need to handle it in the bot logic
+    // For local player:
+    if (engine.state.turn === localColor) {
+      engine.selectPiece(toRow, toCol);
+      renderBoard();
+    }
+  }
+
+  // Bot Trigger
+  if (isBotMode && !result.winner && engine.state.turn !== localColor) {
+    // If it was a chain capture for the player, turn didn't change, so this block won't run.
+    // If turn changed to opponent (Bot), run bot.
+    setTimeout(playBotTurn, 1000);
+  }
+}
+
+// ── Bot Logic ─────────────────────────────────────────────────────────────
+function playBotTurn() {
+  if (!engine || engine.state.phase !== "playing") return;
+
+  // Bot plays the color opposite to localColor
+  const botColor = localColor === "red" ? "white" : "red";
+
+  if (engine.state.turn !== botColor) return;
+
+  const move = engine.getBotMove(botColor);
+
+  if (!move) {
+    // Should have lost already if no moves, but safety check
+    console.warn("Bot cannot move");
+    return;
+  }
+
+  const { from, to } = move;
+
+  // Select piece
+  engine.selectPiece(from.row, from.col);
+
+  // Apply move
+  const result = engine.move(to.row, to.col);
+
+  if (result) {
+    if (!result.captured?.length) synth.opponentMove();
+    else synth.capture();
+
+    handleMoveResult(result, to.row, to.col);
     renderBoard();
+    updateHUD();
+
+    // Handle chain capture
+    if (result.chainCapture) {
+      setTimeout(playBotTurn, 800);
+    } else {
+      // Turn passed to player
+      if (!result.winner) {
+        synth.turnNotify();
+        showTurnOverlay();
+      }
+    }
   }
 }
 
@@ -342,16 +454,26 @@ function renderBoard() {
     }
   }
 
-  // Borda dourada do tabuleiro
+  // Borda
   ctx.strokeStyle = COLORS.border;
   ctx.lineWidth = 3;
   ctx.strokeRect(1.5, 1.5, SIZE - 3, SIZE - 3);
 }
 
 function drawPiece(x, y, piece, isForced) {
+  // Tenta desenhar usando o asset SVG gerado
+  const key = `${piece.color}-${piece.isKing ? "king" : "man"}`;
+  const img = loader.get(key);
+
+  if (img) {
+    ctx.drawImage(img, x, y, CELL, CELL);
+    return;
+  }
+
+  // Fallback: renderização procedural antiga se a imagem não carregou
   const cx = x + CELL / 2,
     cy = y + CELL / 2;
-  const r = CELL / 2 - 5;
+  const r = CELL / 2 - 8; // Slightly smaller for better look
   const isRed = piece.color === "red";
 
   // Sombra
@@ -377,27 +499,16 @@ function drawPiece(x, y, piece, isForced) {
   ctx.arc(cx - r * 0.25, cy - r * 0.28, r * 0.35, 0, Math.PI * 2);
   ctx.fill();
 
-  // Anel de captura obrigatória (REMOVIDO por solicitação)
-  /*
-  if (isForced) {
-    ctx.strokeStyle = COLORS.forcedRing;
-    ctx.lineWidth   = 3;
-    ctx.setLineDash([5, 3]);
-    ctx.beginPath(); ctx.arc(cx, cy, r + 4, 0, Math.PI * 2); ctx.stroke();
-    ctx.setLineDash([]);
-  }
-  */
-
   // Coroa da dama
   if (piece.isKing) {
     ctx.fillStyle = COLORS.kingGold;
     ctx.strokeStyle = "rgba(0,0,0,0.6)";
     ctx.lineWidth = 0.8;
-    ctx.font = `bold ${Math.floor(CELL * 0.44)}px serif`;
+    ctx.font = `bold ${Math.floor(CELL * 0.5)}px serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("♛", cx, cy + 1);
-    ctx.strokeText("♛", cx, cy + 1);
+    ctx.fillText("♛", cx, cy + 2);
+    ctx.strokeText("♛", cx, cy + 2);
   }
 }
 
@@ -408,7 +519,7 @@ function updateHUD() {
   const myTurn = turn === localColor;
 
   const turnEl = document.getElementById("turn-display");
-  turnEl.textContent = myTurn ? "Seu turno" : "Turno do oponente";
+  turnEl.textContent = myTurn ? "Sua vez" : "Vez do oponente";
   turnEl.style.color = myTurn ? "#69db7c" : "#ff6b6b";
 
   // Glow no tabuleiro
@@ -416,65 +527,52 @@ function updateHUD() {
   if (myTurn) canvas.classList.add("my-turn-glow");
   else canvas.classList.remove("my-turn-glow");
 
-  document.getElementById("red-count").textContent = `🔴 ${pieceCount.red}`;
-  document.getElementById("white-count").textContent = `⚪ ${pieceCount.white}`;
-  document.getElementById("color-display").textContent = `Você: ${
+  document.getElementById("red-count").textContent = `${pieceCount.red}`;
+  document.getElementById("white-count").textContent = `${pieceCount.white}`;
+
+  const colorDisplay = document.getElementById("color-display");
+  colorDisplay.textContent = `Você: ${
     localColor === "red" ? "🔴 Vermelho" : "⚪ Branco"
   }`;
+  colorDisplay.style.borderColor =
+    localColor === "red" ? COLORS.red : COLORS.white;
+}
+
+function showTurnOverlay() {
+  ui.toast("Sua vez de jogar!", "info", 1500);
 }
 
 // ── Tutorial ──────────────────────────────────────────────────────────────
 function showTutorial() {
   ui.openModal(
     "tutorial",
-    `<div style="line-height:1.8;font-size:13px;max-width:380px">
-      <p><strong style="color:#d4af37">Objetivo</strong><br>
-         Capturar todas as peças do oponente,<br>
-         ou bloquear todos os seus movimentos.</p>
-      <hr style="border-color:#2a2a5a;margin:10px 0">
-
-      <p><strong style="color:#d4af37">Movimentos</strong></p>
+    `<div style="line-height:1.6;font-size:14px;">
+      <p><strong style="color:var(--ui-accent)">Objetivo</strong><br>
+         Capturar todas as peças do oponente ou bloqueá-lo.</p>
+      
+      <p style="margin-top:10px"><strong style="color:var(--ui-accent)">Movimentos</strong></p>
       <ul style="padding-left:1.2rem;margin:4px 0">
-        <li>Peças movem na diagonal, <em>uma casa por vez</em></li>
-        <li>Peças regulares só avançam (rumo ao lado oposto)</li>
-        <li>Damas <strong>♛</strong> movem em qualquer diagonal</li>
+        <li>Peças movem na diagonal à frente.</li>
+        <li>Damas (após chegar ao fim) movem em qualquer distância.</li>
       </ul>
 
-      <p style="margin-top:10px"><strong style="color:#d4af37">Capturas</strong></p>
+      <p style="margin-top:10px"><strong style="color:var(--ui-accent)">Capturas</strong></p>
       <ul style="padding-left:1.2rem;margin:4px 0">
-        <li>Salte sobre uma peça inimiga para capturá-la</li>
-        <li>Capturas podem ser para frente <em>e para trás</em></li>
-        <li>Após capturar, se houver outra captura disponível,<br>você deve continuar</li>
+        <li>Salte sobre peças inimigas (frente ou trás).</li>
+        <li>Captura é <strong>obrigatória</strong>!</li>
       </ul>
-
-      <p style="margin-top:10px"><strong style="color:#d4af37">Promoção</strong></p>
-      <ul style="padding-left:1.2rem;margin:4px 0">
-        <li>Ao chegar no lado oposto → vira <strong>DAMA ♛</strong></li>
-        <li>Damas se movem em qualquer direção diagonal</li>
-      </ul>
-
-      <p style="margin-top:10px"><strong style="color:#d4af37">Indicadores visuais</strong></p>
-      <ul style="padding-left:1.2rem;margin:4px 0">
-        <li>🟨 Casa dourada = peça selecionada</li>
-        <li>🟢 Pontos verdes = destinos disponíveis</li>
-      </ul>
-
-      <p style="margin-top:10px;color:#888;font-size:11px">
-        🔴 Vermelho começa sempre (é o host da sala).
-      </p>
     </div>`,
-    { title: "Como Jogar — Dama", confirmLabel: "Entendi!" }
+    { title: "Como Jogar", confirmLabel: "Entendi" }
   );
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 function copyToClipboard(text, btn) {
   navigator.clipboard.writeText(text).then(() => {
+    const original = btn.textContent;
     btn.textContent = "Copiado!";
-    btn.classList.add("btn-copy--done");
     setTimeout(() => {
-      btn.textContent = btn.dataset.label;
-      btn.classList.remove("btn-copy--done");
+      btn.textContent = original;
     }, 2000);
   });
 }

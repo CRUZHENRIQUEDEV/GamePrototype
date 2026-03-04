@@ -1,7 +1,7 @@
 // shared/ui/DragDrop.js
 // Arrastar e soltar genérico para cartas e peças — touch e mouse
 
-import { bus } from '../core/EventBus.js';
+import { bus } from "../core/EventBus.js";
 
 export class DragDrop {
   constructor(container = document.body) {
@@ -11,9 +11,9 @@ export class DragDrop {
     this._offset = { x: 0, y: 0 };
     this._dropHandlers = new Map();
 
-    container.addEventListener('pointerdown', e => this._start(e));
-    window.addEventListener('pointermove', e => this._move(e));
-    window.addEventListener('pointerup',   e => this._end(e));
+    container.addEventListener("pointerdown", (e) => this._start(e));
+    window.addEventListener("pointermove", (e) => this._move(e));
+    window.addEventListener("pointerup", (e) => this._end(e));
   }
 
   /**
@@ -22,9 +22,9 @@ export class DragDrop {
    * @param {Object} data  dados repassados no evento drop
    */
   enable(element, data) {
-    element.dataset.draggable = 'true';
+    element.dataset.draggable = "true";
     element.dataset.dragData = JSON.stringify(data);
-    element.style.cursor = 'grab';
+    element.style.cursor = "grab";
   }
 
   /**
@@ -39,7 +39,7 @@ export class DragDrop {
   }
 
   _start(e) {
-    const el = e.target.closest('[data-draggable]');
+    const el = e.target.closest("[data-draggable]");
     if (!el) return;
     e.preventDefault();
     this.dragging = el;
@@ -48,34 +48,37 @@ export class DragDrop {
 
     this._ghost = el.cloneNode(true);
     Object.assign(this._ghost.style, {
-      position: 'fixed',
-      pointerEvents: 'none',
-      opacity: '0.85',
-      zIndex: '9999',
-      width: rect.width + 'px',
-      height: rect.height + 'px',
-      transform: 'rotate(3deg) scale(1.05)',
-      transition: 'transform 0.1s',
+      position: "fixed",
+      pointerEvents: "none",
+      opacity: "0.85",
+      zIndex: "9999",
+      width: rect.width + "px",
+      height: rect.height + "px",
+      transform: "rotate(3deg) scale(1.05)",
+      transition: "transform 0.1s",
     });
     document.body.appendChild(this._ghost);
-    el.style.opacity = '0.4';
+    el.style.opacity = "0.4";
     this._move(e);
 
     const data = JSON.parse(el.dataset.dragData);
-    bus.emit('drag:start', { element: el, data });
+    bus.emit("drag:start", { element: el, data });
   }
 
   _move(e) {
     if (!this._ghost) return;
-    this._ghost.style.left = (e.clientX - this._offset.x) + 'px';
-    this._ghost.style.top  = (e.clientY - this._offset.y) + 'px';
+    this._ghost.style.left = e.clientX - this._offset.x + "px";
+    this._ghost.style.top = e.clientY - this._offset.y + "px";
 
     // Highlight dropzones
-    document.querySelectorAll('[data-dropzone]').forEach(dz => {
+    document.querySelectorAll("[data-dropzone]").forEach((dz) => {
       const r = dz.getBoundingClientRect();
-      const over = e.clientX >= r.left && e.clientX <= r.right &&
-                   e.clientY >= r.top  && e.clientY <= r.bottom;
-      dz.classList.toggle('dropzone--active', over);
+      const over =
+        e.clientX >= r.left &&
+        e.clientX <= r.right &&
+        e.clientY >= r.top &&
+        e.clientY <= r.bottom;
+      dz.classList.toggle("dropzone--active", over);
     });
   }
 
@@ -86,26 +89,31 @@ export class DragDrop {
     // Encontra dropzone sob o cursor
     this._ghost?.remove();
     this._ghost = null;
-    this.dragging.style.opacity = '';
+    this.dragging.style.opacity = "";
     const origin = this.dragging;
     this.dragging = null;
 
     const target = this._findDropzone(e.clientX, e.clientY, data);
     if (target) {
-      target.classList.remove('dropzone--active');
+      target.classList.remove("dropzone--active");
       this._dropHandlers.get(target)?.(data, target, origin);
-      bus.emit('drag:drop', { data, target, origin });
+      bus.emit("drag:drop", { data, target, origin });
     } else {
-      bus.emit('drag:cancel', { data, origin });
+      bus.emit("drag:cancel", { data, origin });
     }
 
-    document.querySelectorAll('.dropzone--active').forEach(dz =>
-      dz.classList.remove('dropzone--active'));
-    bus.emit('drag:end', { data });
+    document
+      .querySelectorAll(".dropzone--active")
+      .forEach((dz) => dz.classList.remove("dropzone--active"));
+    bus.emit("drag:end", { data });
   }
 
   _findDropzone(x, y, data) {
     for (const [el] of this._dropHandlers) {
+      if (!document.body.contains(el)) {
+        this._dropHandlers.delete(el);
+        continue;
+      }
       const r = el.getBoundingClientRect();
       if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
         return el;

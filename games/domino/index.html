@@ -1,99 +1,100 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Domino But Web - By Pedro Vilas Bôas</title>
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Dominó</title>
+  </head>
+  <body>
 
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Domino But Web - By Pedro Vilas Bôas</h1>
-            <div class="subtitle">
-                <p>Jogo de dominó inteligente com modo PvP e EvE - Trabalho de Front-End - CESAR School</p>
-            </div>
+    <!-- Fixed Controls (top-right) -->
+    <div class="fixed-controls">
+      <button id="soundToggleBtn" class="icon-btn" title="Som ativado">🔊</button>
+    </div>
+
+    <!-- ── Lobby Screen ─────────────────────────────────────────────── -->
+    <div id="lobby">
+      <h1>Dominó</h1>
+      <p class="lobby-subtitle">Clássico brasileiro · 2–4 jogadores · Multiplayer P2P</p>
+
+      <div class="lobby-actions">
+        <!-- Shared name input -->
+        <input type="text" id="player-name" class="name-field"
+               placeholder="Seu nome..." maxlength="16" />
+
+        <!-- Bot: player count selector -->
+        <div class="player-count-row">
+          <span class="count-label">Jogadores:</span>
+          <button class="count-btn active" data-n="2">2</button>
+          <button class="count-btn" data-n="3">3</button>
+          <button class="count-btn" data-n="4">4</button>
         </div>
 
-        <div class="game-modes">
-            <button class="btn" onclick="startPlayerMode()" id="playerModeBtn">
-                🎮 Modo Jogador (Player vs. Player)
-            </button>
-            <button class="btn secondary" onclick="startSimulationMode()" id="simulationModeBtn">
-                🤖 Modo Simulação (NPC vs. NPC)
-            </button>
-            <button class="btn secondary" onclick="resetGame()" id="resetBtn">
-                🔄 Reiniciar Jogo
-            </button>
+        <button id="btn-bot" class="primary">
+          <span>🤖</span> Jogar contra Bot
+        </button>
+
+        <button id="btn-create">
+          <span>➕</span> Criar Sala Multiplayer
+        </button>
+
+        <div class="input-group">
+          <input type="text" id="room-input"
+                 placeholder="Código da sala..." maxlength="8"
+                 style="text-transform:uppercase" />
+          <button id="btn-join">Entrar</button>
+        </div>
+      </div>
+
+      <!-- Room info (revealed after creating a room) -->
+      <div id="room-info" class="hidden">
+        <p style="font-weight:bold;margin-bottom:10px">Sala criada!</p>
+        <div id="room-id-display" class="room-code-box">—</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <button id="btn-copy-id" style="flex:1;font-size:.9rem">Copiar Código</button>
+          <button id="btn-copy-url" style="flex:1;font-size:.9rem">Copiar Link</button>
+        </div>
+        <p class="waiting-text">Aguardando jogadores…</p>
+        <div id="waiting-list" class="waiting-list-row">
+          <span class="net-player-tag">Você (host)</span>
+        </div>
+        <button id="btn-start-net" class="primary hidden" style="margin-top:14px">
+          Iniciar Jogo Online
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Game Area ──────────────────────────────────────────────────── -->
+    <div id="game-area" class="hidden">
+      <div class="table-container">
+        <div class="player-slot player-top"   id="player-3-slot"></div>
+        <div class="player-slot player-left"  id="player-2-slot"></div>
+        <div class="player-slot player-right" id="player-4-slot"></div>
+
+        <div class="table-surface">
+          <div class="board-content" id="board"></div>
         </div>
 
-        <div class="game-area">
-            <div class="board-container">
-                <h3>Tabuleiro</h3>
-                <div class="board" id="board">
-                </div>
-            </div>
-
-            <div class="control-panel">
-                <div class="stats">
-                    <div class="stat-card">
-                        <div class="stat-value" id="piecesRemaining">28</div>
-                        <div class="stat-label">Peças Restantes</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="boardSize">0</div>
-                        <div class="stat-label">Tamanho do Tabuleiro</div>
-                    </div>
-                </div>
-
-                <div class="status" id="gameStatus">
-                    <strong>Status:</strong> Selecione um modo de jogo
-                </div>
-
-                <!-- Player Controls -->
-                <div id="playerControls" class="hidden">
-                    <div class="current-piece">
-                        <h4>Peça Atual:</h4>
-                        <div class="piece-display" id="currentPieceDisplay"></div>
-                    </div>
-                    <div class="actions">
-                        <button class="btn" onclick="tryInsertFromStart()" id="insertStartBtn">
-                            ⬅️ Tentar do Início
-                        </button>
-                        <button class="btn" onclick="tryInsertFromEnd()" id="insertEndBtn">
-                            ➡️ Tentar do Fim
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Simulation Controls -->
-                <div id="simulationControls" class="hidden">
-                    <div class="simulation-controls">
-                        <button class="btn" onclick="stepSimulation()" id="stepBtn">
-                            👆 Passo
-                        </button>
-                        <button class="btn" onclick="toggleSimulation()" id="playPauseBtn">
-                            ▶️ Play
-                        </button>
-                        <button class="btn secondary" onclick="runFullSimulation()" id="fullSimBtn">
-                            ⏩ Simulação Completa
-                        </button>
-                    </div>
-                    <div class="speed-control">
-                        <label>Velocidade:</label>
-                        <input type="range" id="speedControl" min="100" max="2000" value="1000" step="100">
-                        <span id="speedDisplay">1s</span>
-                    </div>
-                </div>
-
-                <div class="log" id="gameLog">
-                    <div class="log-entry info">Logs do jogo...</div>
-                </div>
-            </div>
+        <div class="player-slot player-bottom" id="player-1-slot">
+          <div class="player-info">Você</div>
+          <div class="player-hand" id="playerHand"></div>
         </div>
+      </div>
+
+      <div class="game-controls">
+        <div class="status-bar" id="gameStatus">Aguardando...</div>
+        <div class="action-bar hidden" id="playerActions">
+          <span style="font-size:0.8rem;color:#888">Sua vez!</span>
+          <button class="ui-btn ui-btn-sm" id="passTurnBtn">Passar Vez</button>
+          <button class="ui-btn ui-btn-sm" id="buyPieceBtn">Comprar Peça</button>
+        </div>
+        <div class="controls-row">
+          <button class="ui-btn ui-btn-sm" id="resetGameBtn">Reiniciar</button>
+        </div>
+      </div>
     </div>
 
     <script type="module" src="src/index.js"></script>
-</body>
+  </body>
 </html>
