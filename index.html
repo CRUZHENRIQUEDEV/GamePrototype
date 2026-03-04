@@ -1,110 +1,186 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GamePrototype — Hub</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: #0d0d1a; color: #e0e0f0;
-      font-family: 'Segoe UI', sans-serif;
-      min-height: 100vh; display: flex; flex-direction: column;
-      align-items: center; padding: 48px 24px; gap: 32px;
-    }
-    h1 { font-size: 2.8rem; color: #d4af37; letter-spacing: 4px; }
-    p  { color: #666; font-size: 14px; max-width: 500px; text-align: center; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GamePrototype — Hub</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: #0d0d1a;
+        color: #e0e0f0;
+        font-family: "Segoe UI", sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 48px 24px;
+        gap: 32px;
+      }
+      h1 {
+        font-size: 2.8rem;
+        color: #d4af37;
+        letter-spacing: 4px;
+      }
+      p {
+        color: #666;
+        font-size: 14px;
+        max-width: 500px;
+        text-align: center;
+      }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 20px; width: 100%; max-width: 900px;
-    }
-    .card {
-      background: #1a1a2e; border: 1px solid #2a2a5a; border-radius: 14px;
-      padding: 24px 20px; display: flex; flex-direction: column; gap: 10px;
-      text-decoration: none; color: inherit;
-      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-    }
-    .card:hover {
-      border-color: #d4af37; transform: translateY(-4px);
-      box-shadow: 0 8px 32px rgba(212,175,55,0.15);
-    }
-    .card__icon { font-size: 2.4rem; }
-    .card__title { font-size: 1.1rem; font-weight: bold; color: #d4af37; }
-    .card__desc  { font-size: 12px; color: #888; line-height: 1.5; }
-    .card__tags  { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-    .tag {
-      font-size: 10px; padding: 2px 8px; border-radius: 20px;
-      background: rgba(74,127,203,0.15); border: 1px solid #2a4a8a; color: #74c0fc;
-    }
-    .tag.green  { background: rgba(45,106,79,0.2); border-color: #2d6a4f; color: #69db7c; }
-    .tag.purple { background: rgba(74,14,78,0.2); border-color: #6a0e7a; color: #da77ff; }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+        width: 100%;
+        max-width: 900px;
+      }
+      .card {
+        background: #1a1a2e;
+        border: 1px solid #2a2a5a;
+        border-radius: 14px;
+        padding: 24px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        text-decoration: none;
+        color: inherit;
+        transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+      }
+      .card:hover {
+        border-color: #d4af37;
+        transform: translateY(-4px);
+        box-shadow: 0 8px 32px rgba(212, 175, 55, 0.15);
+      }
+      .card__icon {
+        font-size: 2.4rem;
+      }
+      .card__title {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #d4af37;
+      }
+      .card__desc {
+        font-size: 12px;
+        color: #888;
+        line-height: 1.5;
+      }
+      .card__tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 4px;
+      }
+      .tag {
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 20px;
+        background: rgba(74, 127, 203, 0.15);
+        border: 1px solid #2a4a8a;
+        color: #74c0fc;
+      }
+      .tag.green {
+        background: rgba(45, 106, 79, 0.2);
+        border-color: #2d6a4f;
+        color: #69db7c;
+      }
+      .tag.purple {
+        background: rgba(74, 14, 78, 0.2);
+        border-color: #6a0e7a;
+        color: #da77ff;
+      }
 
-    footer { color: #333; font-size: 12px; margin-top: auto; }
-  </style>
-</head>
-<body>
-  <h1>GamePrototype</h1>
-  <p>Repositório de protótipos de jogos online — multiplayer P2P, sem servidor de jogo.</p>
+      footer {
+        color: #333;
+        font-size: 12px;
+        margin-top: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>GamePrototype</h1>
+    <p>
+      Repositório de protótipos de jogos online — multiplayer P2P, sem servidor
+      de jogo.
+    </p>
 
-  <div class="grid">
-    <a class="card" href="./games/tcg-basic/index.html">
-      <div class="card__icon">🃏</div>
-      <div class="card__title">TCG Basic</div>
-      <div class="card__desc">Duelo de cartas 2D clássico. Jogue cartas, ataque o oponente, gerencie mana. Interface SVG.</div>
-      <div class="card__tags">
-        <span class="tag green">SVG</span>
-        <span class="tag">PeerJS</span>
-        <span class="tag">IndexedDB</span>
-      </div>
-    </a>
+    <div class="grid">
+      <a class="card" href="./games/tcg-basic/index.html">
+        <div class="card__icon">🃏</div>
+        <div class="card__title">TCG Basic</div>
+        <div class="card__desc">
+          Duelo de cartas 2D clássico. Jogue cartas, ataque o oponente, gerencie
+          mana. Interface SVG.
+        </div>
+        <div class="card__tags">
+          <span class="tag green">SVG</span>
+          <span class="tag">PeerJS</span>
+          <span class="tag">IndexedDB</span>
+        </div>
+      </a>
 
-    <a class="card" href="./games/tcg-3d/index.html">
-      <div class="card__icon">🐉</div>
-      <div class="card__title">TCG 3D</div>
-      <div class="card__desc">Mesa de jogo renderizada em Three.js. Cartas como objetos 3D. Orbite a câmera.</div>
-      <div class="card__tags">
-        <span class="tag purple">Three.js</span>
-        <span class="tag">PeerJS</span>
-        <span class="tag green">TCG Engine</span>
-      </div>
-    </a>
+      <a class="card" href="./games/tcg-3d/index.html">
+        <div class="card__icon">🐉</div>
+        <div class="card__title">TCG 3D</div>
+        <div class="card__desc">
+          Mesa de jogo renderizada em Three.js. Cartas como objetos 3D. Orbite a
+          câmera.
+        </div>
+        <div class="card__tags">
+          <span class="tag purple">Three.js</span>
+          <span class="tag">PeerJS</span>
+          <span class="tag green">TCG Engine</span>
+        </div>
+      </a>
 
-    <a class="card" href="./games/checkers/index.html">
-      <div class="card__icon">♟</div>
-      <div class="card__title">Dama</div>
-      <div class="card__desc">Jogo de dama clássico com regras brasileiras. Capturas obrigatórias, damas, encadeamento. Tutorial integrado.</div>
-      <div class="card__tags">
-        <span class="tag">Canvas 2D</span>
-        <span class="tag">PeerJS</span>
-        <span class="tag green">Tutorial</span>
-      </div>
-    </a>
+      <a class="card" href="./games/checkers/index.html">
+        <div class="card__icon">♟</div>
+        <div class="card__title">Dama</div>
+        <div class="card__desc">
+          Jogo de dama clássico com regras brasileiras. Capturas obrigatórias,
+          damas, encadeamento. Tutorial integrado.
+        </div>
+        <div class="card__tags">
+          <span class="tag">Canvas 2D</span>
+          <span class="tag">PeerJS</span>
+          <span class="tag green">Tutorial</span>
+        </div>
+      </a>
 
-    <a class="card" href="./games/arena-3d/index.html">
-      <div class="card__icon">⚔</div>
-      <div class="card__title">Arena 3D</div>
-      <div class="card__desc">Arena de combate top-down. Mova com WASD, atire com Space. Dano em tempo real via P2P.</div>
-      <div class="card__tags">
-        <span class="tag purple">Three.js</span>
-        <span class="tag">PeerJS</span>
-        <span class="tag">Partículas</span>
-      </div>
-    </a>
+      <a class="card" href="./games/arena-3d/index.html">
+        <div class="card__icon">⚔</div>
+        <div class="card__title">Arena 3D</div>
+        <div class="card__desc">
+          Arena de combate top-down. Mova com WASD, atire com Space. Dano em
+          tempo real via P2P.
+        </div>
+        <div class="card__tags">
+          <span class="tag purple">Three.js</span>
+          <span class="tag">PeerJS</span>
+          <span class="tag">Partículas</span>
+        </div>
+      </a>
 
-    <a class="card" href="./games/domino/index.html">
-      <div class="card__icon">🁄</div>
-      <div class="card__title">Dominó</div>
-      <div class="card__desc">Jogo de dominó com modos PvP, PvE (Bot) e Simulação. Refatorado com arquitetura modular.</div>
-      <div class="card__tags">
-        <span class="tag">ES6 Modules</span>
-        <span class="tag green">Modular</span>
-        <span class="tag purple">Bot Mode</span>
-      </div>
-    </a>
-  </div>
+      <a class="card" href="./games/domino/index.html">
+        <div class="card__icon">🁄</div>
+        <div class="card__title">Dominó</div>
+        <div class="card__desc">Jogo de dominó</div>
+        <div class="card__tags">
+          <span class="tag">ES6 Modules</span>
+          <span class="tag purple">Bot Mode</span>
+        </div>
+      </a>
+    </div>
 
-  <footer>Módulos compartilhados em /shared · ES Modules nativos · Sem build step</footer>
-</body>
+    <footer>
+      Módulos compartilhados em /shared · ES Modules nativos · Sem build step
+    </footer>
+  </body>
 </html>
