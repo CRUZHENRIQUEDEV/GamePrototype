@@ -184,7 +184,7 @@ export class DominoNetwork {
       currentPlayerIndex: this.game.currentPlayerIndex,
       poolSize: this.game.piecesPool.length,
       isActive: this.game.isActive,
-      winner: this.game.state.get().winner,
+      winner: this.game.state.get('winner'),
     };
 
     network.broadcast('game:state', pub);
@@ -200,7 +200,7 @@ export class DominoNetwork {
     });
 
     // Broadcast game:over se houver vencedor
-    const winner = this.game.state.get().winner;
+    const winner = this.game.state.get('winner');
     if (winner) {
       network.broadcast('game:over', { winner: { name: winner.name } });
     }

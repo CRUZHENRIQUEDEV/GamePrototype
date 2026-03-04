@@ -425,8 +425,9 @@ export class DominoUI {
     if (!statusEl) return;
 
     if (!this.game.isActive) {
-      statusEl.textContent = this.game.state.get().winner
-        ? `Vencedor: ${this.game.state.get().winner.name}`
+      const winner = this.game.state.get("winner");
+      statusEl.textContent = winner
+        ? `Vencedor: ${winner.name}`
         : "Jogo Parado";
       actionsEl?.classList.add("hidden");
       return;
