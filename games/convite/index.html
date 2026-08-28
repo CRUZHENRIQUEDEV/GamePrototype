@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aquele Nosso Rolê</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Epilogue:wght@400;500;600&family=Courier+Prime:wght@400;700&display=swap">
+<style>
+:root{
+  --ink:#10123A;
+  --paper:#F6F1E4;
+  --pink:#FF4E6E;
+  --blue:#2F5BFF;
+  --mint:#6FE3B0;
+  --text:#16183C;
+  --text-soft:#5A5C7E;
+  --display:'Syne','Trebuchet MS',sans-serif;
+  --body:'Epilogue','Segoe UI',system-ui,sans-serif;
+  --mono:'Courier Prime',ui-monospace,'Courier New',monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--ink);
+  color:var(--paper);
+  font-family:var(--body);
+  overflow-x:hidden;
+  -webkit-text-size-adjust:100%;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* ---------- fundo: noite + halftone de duas tintas ---------- */
+.stage{
+  position:relative;
+  min-height:100svh;
+  display:grid;
+  place-items:center;
+  padding:clamp(20px,5vw,56px) clamp(16px,5vw,40px);
+  background:
+    radial-gradient(120% 90% at 15% 0%, #1B1F5C 0%, transparent 55%),
+    radial-gradient(110% 80% at 90% 100%, #2A1442 0%, transparent 60%),
+    var(--ink);
+  isolation:isolate;
+}
+.stage::before,
+.stage::after{
+  content:"";
+  position:fixed;
+  inset:-10px;
+  pointer-events:none;
+  z-index:0;
+}
+.stage::before{
+  background-image:radial-gradient(circle at 1px 1px, rgba(255,78,110,.30) 1.1px, transparent 1.3px);
+  background-size:7px 7px;
+}
+.stage::after{
+  background-image:radial-gradient(circle at 1px 1px, rgba(47,91,255,.26) 1.1px, transparent 1.3px);
+  background-size:7px 7px;
+  background-position:3px 2px;
+}
+.blob{
+  position:fixed;
+  border-radius:50%;
+  filter:blur(70px);
+  opacity:.5;
+  pointer-events:none;
+  z-index:0;
+}
+.blob.a{width:44vmin;height:44vmin;background:var(--pink);top:-12vmin;left:-8vmin;animation:drift 19s ease-in-out infinite}
+.blob.b{width:38vmin;height:38vmin;background:var(--blue);bottom:-10vmin;right:-6vmin;animation:drift 23s ease-in-out infinite reverse}
+@keyframes drift{
+  0%,100%{transform:translate(0,0) scale(1)}
+  50%{transform:translate(6vmin,4vmin) scale(1.12)}
+}
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+
+/* ---------- o ingresso ---------- */
+.wrap{position:relative;z-index:2;width:min(560px,100%)}
+.ticket{
+  position:relative;
+  background:var(--paper);
+  color:var(--text);
+  border-radius:6px;
+  transform:rotate(-1.1deg);
+  box-shadow:
+    9px 9px 0 rgba(255,78,110,.9),
+    18px 18px 0 rgba(47,91,255,.55),
+    0 30px 60px rgba(5,6,25,.55);
+  animation:land .7s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes land{
+  from{opacity:0;transform:rotate(-6deg) translateY(26px) scale(.94)}
+  to{opacity:1;transform:rotate(-1.1deg) translateY(0) scale(1)}
+}
+.stub{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px 14px;
+  align-items:baseline;
+  justify-content:space-between;
+  padding:14px clamp(18px,5vw,30px);
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--text-soft);
+}
+.stub b{color:var(--pink);font-weight:700}
+.perf{
+  position:relative;
+  height:0;
+  border-top:2px dashed rgba(22,24,60,.28);
+}
+.perf::before,.perf::after{
+  content:"";
+  position:absolute;
+  top:-11px;
+  width:22px;height:22px;
+  border-radius:50%;
+  background:var(--ink);
+}
+.perf::before{left:-11px}
+.perf::after{right:-11px}
+
+.panel{padding:clamp(26px,6vw,42px) clamp(20px,6vw,40px) clamp(28px,6vw,40px)}
+.eyebrow{
+  margin:0 0 14px;
+  font-family:var(--mono);
+  font-size:12px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--blue);
+}
+h1{
+  margin:0 0 10px;
+  font-family:var(--display);
+  font-weight:800;
+  font-size:clamp(34px,8.4vw,58px);
+  line-height:.98;
+  letter-spacing:-.02em;
+  text-wrap:balance;
+}
+h1 .hl{color:var(--pink)}
+.sub{
+  margin:0;
+  max-width:38ch;
+  font-size:clamp(14px,3.6vw,16px);
+  line-height:1.55;
+  color:var(--text-soft);
+}
+
+/* ---------- botões ---------- */
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:16px;
+  margin-top:clamp(26px,6vw,34px);
+}
+.btn{
+  font-family:var(--display);
+  font-weight:800;
+  font-size:20px;
+  border-radius:4px;
+  border:2px solid var(--text);
+  padding:15px 30px;
+  cursor:pointer;
+  transition:transform .18s cubic-bezier(.16,1,.3,1), box-shadow .18s ease, background .18s ease, color .18s ease;
+}
+.btn:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.yes{
+  background:var(--pink);
+  color:var(--paper);
+  box-shadow:5px 5px 0 var(--text);
+  transform:scale(var(--grow,1));
+  transform-origin:left center;
+}
+.yes:hover,.yes:focus-visible{box-shadow:7px 7px 0 var(--blue)}
+.yes:active{transform:scale(var(--grow,1)) translate(3px,3px);box-shadow:2px 2px 0 var(--text)}
+.no-slot{display:flex;align-items:center}
+.no{
+  background:transparent;
+  color:var(--text-soft);
+  border-color:rgba(22,24,60,.35);
+  font-size:17px;
+  padding:13px 24px;
+  white-space:nowrap;
+  touch-action:manipulation;
+}
+.no.loose{
+  position:fixed;
+  z-index:9;
+  margin:0;
+  background:var(--paper);
+  box-shadow:0 10px 26px rgba(5,6,25,.45);
+  transition:left .2s cubic-bezier(.16,1,.3,1), top .2s cubic-bezier(.16,1,.3,1), font-size .2s ease, padding .2s ease;
+}
+.no.done{
+  border-color:var(--mint);
+  background:var(--mint);
+  color:#125C42;
+  cursor:pointer;
+}
+
+/* ---------- comemoração ---------- */
+[hidden]{display:none !important}
+.yay h2{
+  margin:0 0 14px;
+  font-family:var(--display);
+  font-weight:800;
+  font-size:clamp(38px,10vw,66px);
+  line-height:.92;
+  letter-spacing:-.03em;
+  color:var(--pink);
+}
+.yay p{
+  margin:0 0 16px;
+  max-width:40ch;
+  font-size:clamp(15px,3.8vw,17px);
+  line-height:1.6;
+  color:var(--text);
+}
+.yay p.small{font-size:14px;color:var(--text-soft)}
+.stamp{
+  display:inline-block;
+  margin-top:8px;
+  padding:9px 16px;
+  border:2px dashed var(--blue);
+  border-radius:4px;
+  transform:rotate(-3deg);
+  font-family:var(--mono);
+  font-weight:700;
+  font-size:12px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--blue);
+}
+
+@media (max-width:520px){
+  .ticket{box-shadow:6px 6px 0 rgba(255,78,110,.9),12px 12px 0 rgba(47,91,255,.5),0 20px 40px rgba(5,6,25,.5)}
+  .btn{padding:14px 24px;font-size:18px}
+  .actions{gap:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="blob a"></div>
+  <div class="blob b"></div>
+  <canvas id="confetti"></canvas>
+
+  <div class="wrap">
+    <main class="ticket">
+      <div class="stub">
+        <span>Convite <b>Nº 01</b></span>
+        <span id="stubPara"></span>
+        <span>Sem validade</span>
+      </div>
+      <div class="perf"></div>
+
+      <section class="panel" id="ask">
+        <p class="eyebrow">pergunta direta, sem rodeio</p>
+        <h1>Aquele nosso rolê,<br><span class="hl">vai rolar?</span></h1>
+        <p class="sub">Pode pensar com calma. Eu espero.</p>
+        <div class="actions">
+          <button class="btn yes" id="yes" type="button">Sim</button>
+          <span class="no-slot" id="noSlot"><button class="btn no" id="no" type="button">Não</button></span>
+        </div>
+      </section>
+
+      <section class="panel yay" id="yay" hidden>
+        <p class="eyebrow">resposta registrada</p>
+        <h2>Eu sabia.</h2>
+        <p id="yayMsg"></p>
+        <p class="small" id="yaySmall"></p>
+        <span class="stamp">Confirmado</span>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+/* ====== mexa só aqui ====== */
+const CONFIG = {
+  para: '',                     // nome dela (deixe '' pra esconder)
+  mensagem: 'Tava esperando esse sim mais do que eu queria admitir.',
+  detalhe: 'Me diz um dia que eu apareço.',
+  fugas: [                      // o que o "Não" fala enquanto foge
+    'Não',
+    'Tem certeza?',
+    'Pensa direito',
+    'Sério mesmo?',
+    'Olha o que você tá perdendo',
+    'Vai por mim, não',
+    'Esse aqui não funciona',
+    'Insistente, hein',
+    'Tá bom, você venceu'
+  ],
+  rendicao: 'Tá, é sim'         // texto do botão quando ele desiste de fugir
+};
+/* ========================== */
+
+const ask   = document.getElementById('ask');
+const yay   = document.getElementById('yay');
+const yes   = document.getElementById('yes');
+const no    = document.getElementById('no');
+const slot  = document.getElementById('noSlot');
+
+document.getElementById('stubPara').textContent = CONFIG.para ? 'Para ' + CONFIG.para : 'Intransferível';
+document.getElementById('yayMsg').textContent   = CONFIG.mensagem;
+document.getElementById('yaySmall').textContent = CONFIG.detalhe;
+
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let fugas = 0;
+let rendido = false;
+let solto = false;
+
+function soltarBotao(){
+  if (solto) return;
+  const r = no.getBoundingClientRect();
+  slot.style.width  = r.width + 'px';
+  slot.style.height = r.height + 'px';
+  // sai de dentro do ticket: o rotate() do ticket quebraria o position:fixed
+  document.body.appendChild(no);
+  no.classList.add('loose');
+  no.style.left = r.left + 'px';
+  no.style.top  = r.top + 'px';
+  solto = true;
+}
+
+function dentroDaTela(x, y, r){
+  const pad = 10;
+  return {
+    x: Math.max(pad, Math.min(x, innerWidth  - r.width  - pad)),
+    y: Math.max(pad, Math.min(y, innerHeight - r.height - pad))
+  };
+}
+
+function pontoLonge(){
+  const r  = no.getBoundingClientRect();
+  const yr = yes.getBoundingClientRect();
+  const pad = 10;
+  const maxX = Math.max(pad, innerWidth  - r.width  - pad);
+  const maxY = Math.max(pad, innerHeight - r.height - pad);
+  const yc = { x: yr.left + yr.width / 2, y: yr.top + yr.height / 2 };
+
+  let melhor = { x: maxX / 2, y: maxY / 2 }, nota = -1;
+  for (let i = 0; i < 30; i++){
+    const x = pad + Math.random() * (maxX - pad);
+    const y = pad + Math.random() * (maxY - pad);
+    const cx = x + r.width / 2, cy = y + r.height / 2;
+    const doAtual = Math.hypot(x - r.left, y - r.top);
+    const doSim   = Math.hypot(cx - yc.x, cy - yc.y);
+    const n = Math.min(doAtual, doSim * 0.9);
+    if (n > nota){ nota = n; melhor = { x, y }; }
+  }
+  return melhor;
+}
+
+let ultimaFuga = 0;
+
+function fugir(){
+  if (rendido) return;
+  const agora = performance.now();
+  if (agora - ultimaFuga < 130) return;   // pointerdown + touchstart + click disparam junto
+  ultimaFuga = agora;
+  soltarBotao();
+
+  fugas++;
+  no.textContent = CONFIG.fugas[Math.min(fugas, CONFIG.fugas.length - 1)];
+  yes.style.setProperty('--grow', Math.min(1 + fugas * 0.07, 1.5).toFixed(2));
+  // encolhe só um pouco — tem que continuar visível e clicável
+  no.style.fontSize = Math.max(14, 17 - fugas * 0.4) + 'px';
+  no.style.padding  = Math.max(10, 13 - fugas * 0.4) + 'px ' + Math.max(16, 24 - fugas) + 'px';
+
+  // mede depois de trocar o texto: a largura muda a cada frase
+  const bruto = pontoLonge();
+  const p = dentroDaTela(bruto.x, bruto.y, no.getBoundingClientRect());
+  no.style.left = p.x + 'px';
+  no.style.top  = p.y + 'px';
+
+  if (fugas >= CONFIG.fugas.length - 1) render();
+}
+
+function render(){
+  rendido = true;
+  no.classList.add('done');
+  no.textContent = CONFIG.rendicao;
+  no.style.fontSize = '17px';
+  no.style.padding  = '13px 24px';
+}
+
+/* desktop: foge quando o cursor chega perto */
+let travado = false;
+addEventListener('pointermove', function (e){
+  if (rendido || travado || e.pointerType === 'touch') return;
+  const r = no.getBoundingClientRect();
+  const dx = Math.max(r.left - e.clientX, 0, e.clientX - r.right);
+  const dy = Math.max(r.top  - e.clientY, 0, e.clientY - r.bottom);
+  if (Math.hypot(dx, dy) < 90){
+    travado = true;
+    fugir();
+    setTimeout(function (){ travado = false; }, 140);
+  }
+}, { passive: true });
+
+/* celular: escapa no toque, antes do clique valer */
+no.addEventListener('touchstart', function (e){
+  if (rendido) return;
+  e.preventDefault();
+  fugir();
+}, { passive: false });
+
+no.addEventListener('pointerdown', function (e){
+  if (rendido) return;
+  e.preventDefault();
+  fugir();
+});
+
+/* teclado: tabular até ele também não salva */
+no.addEventListener('focus', function (){ if (!rendido) fugir(); });
+
+no.addEventListener('click', function (e){
+  if (rendido){ comemorar(); return; }
+  e.preventDefault();
+  fugir();
+});
+
+yes.addEventListener('click', comemorar);
+
+function comemorar(){
+  ask.hidden = true;
+  yay.hidden = false;
+  no.classList.remove('loose');
+  no.remove();
+  slot.style.width = '';
+  slot.style.height = '';
+  fogos();
+}
+
+/* ---------- confete de duas tintas ---------- */
+const cv  = document.getElementById('confetti');
+const ctx = cv.getContext('2d');
+let pecas = [], raf = 0;
+
+function medir(){
+  const d = Math.min(devicePixelRatio || 1, 2);
+  cv.width  = innerWidth * d;
+  cv.height = innerHeight * d;
+  ctx.setTransform(d, 0, 0, d, 0, 0);
+}
+addEventListener('resize', medir);
+medir();
+
+/* se girar a tela, traz o fujão de volta pra dentro */
+addEventListener('resize', function (){
+  if (!solto) return;
+  const r = no.getBoundingClientRect();
+  const p = dentroDaTela(Number.parseFloat(no.style.left) || 0, Number.parseFloat(no.style.top) || 0, r);
+  no.style.left = p.x + 'px';
+  no.style.top  = p.y + 'px';
+});
+
+function fogos(){
+  if (reduced) return;
+  const cores = ['#FF4E6E', '#2F5BFF', '#6FE3B0', '#F6F1E4'];
+  pecas = Array.from({ length: 160 }, function (){
+    return {
+      x: innerWidth / 2 + (Math.random() - .5) * innerWidth * .5,
+      y: innerHeight * .45 + (Math.random() - .5) * 120,
+      vx: (Math.random() - .5) * 9,
+      vy: -6 - Math.random() * 9,
+      w: 5 + Math.random() * 7,
+      h: 8 + Math.random() * 10,
+      r: Math.random() * Math.PI,
+      vr: (Math.random() - .5) * .3,
+      c: cores[(Math.random() * cores.length) | 0]
+    };
+  });
+  cancelAnimationFrame(raf);
+  laco();
+}
+
+function laco(){
+  ctx.clearRect(0, 0, innerWidth, innerHeight);
+  let vivos = 0;
+  for (const p of pecas){
+    p.vy += 0.26;
+    p.vx *= 0.995;
+    p.x  += p.vx;
+    p.y  += p.vy;
+    p.r  += p.vr;
+    if (p.y < innerHeight + 60) vivos++;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.r);
+    ctx.fillStyle = p.c;
+    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+    ctx.restore();
+  }
+  if (vivos) raf = requestAnimationFrame(laco);
+  else ctx.clearRect(0, 0, innerWidth, innerHeight);
+}
+</script>
+</body>
+</html>
